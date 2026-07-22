@@ -18,5 +18,6 @@ void GameScene::Init()
 	// ゲームオーバー
 	std::shared_ptr<GameOver>gameover;
 	gameover = std::make_shared<GameOver>();
+	gameover->Init();
 	m_objList.push_back(gameover);
 }

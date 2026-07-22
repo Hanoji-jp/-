@@ -8,10 +8,10 @@ public:
 	~GameOver() {}
 
 	void Init()override;
-	void Draw();
+	void DrawLit()override;
 
 private:
 
 	std::shared_ptr<KdSquarePolygon> m_polygon;
-
+	std::shared_ptr<KdSquarePolygon> m_darkOverlay;
 };
