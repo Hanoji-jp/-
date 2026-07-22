@@ -23,6 +23,9 @@ private:
 	KdTexture m_spaceTex;
 	KdTexture m_titleTex;
 	KdTexture m_waveTex;
+	KdTexture m_wave2Tex;
 
+	float m_wave0ScrollX = 0.0f;
 	float m_waveScrollX = 0.0f;
+	float m_waveTime = 0.0f;
 };
