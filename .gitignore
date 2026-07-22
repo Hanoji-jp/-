@@ -5,3 +5,15 @@
 3DBaseframework/Project
 3DBaseframework/.vs
 3DBaseframework/CLAUDE.md
+3DBaseframework/Src/Framework/Shader/PostProcessShader/KdPostProcessShader_PS_Blur.shaderInc
+3DBaseframework/Src/Framework/Shader/PostProcessShader/KdPostProcessShader_PS_Bright.shaderInc
+3DBaseframework/Src/Framework/Shader/PostProcessShader/KdPostProcessShader_PS_DoF.shaderInc
+3DBaseframework/Src/Framework/Shader/PostProcessShader/KdPostProcessShader_VS.shaderInc
+3DBaseframework/Src/Framework/Shader/SpriteShader/KdSpriteShader_PS.shaderInc
+3DBaseframework/Src/Framework/Shader/SpriteShader/KdSpriteShader_VS.shaderInc
+3DBaseframework/Src/Framework/Shader/StandardShader/KdStandardShader_PS_GenDepthMapFromLight.shaderInc
+3DBaseframework/Src/Framework/Shader/StandardShader/KdStandardShader_PS_Lit.shaderInc
+3DBaseframework/Src/Framework/Shader/StandardShader/KdStandardShader_PS_UnLit.shaderInc
+3DBaseframework/Src/Framework/Shader/StandardShader/KdStandardShader_VS_GenDepthMapFromLight.shaderInc
+3DBaseframework/Src/Framework/Shader/StandardShader/KdStandardShader_VS_Lit.shaderInc
+3DBaseframework/Src/Framework/Shader/StandardShader/KdStandardShader_VS_UnLit.shaderInc
