@@ -88,6 +88,15 @@
     <Filter Include="Src\Application\GameObject\Camera\FPSCamera">
       <UniqueIdentifier>{cd662ee1-c913-4e31-addc-42ef89e2668c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Cup">
+      <UniqueIdentifier>{f1a2b3c4-1111-4d55-8e66-0a1b2c3d4e01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Water">
+      <UniqueIdentifier>{f1a2b3c4-2222-4d55-8e66-0a1b2c3d4e02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\UI">
+      <UniqueIdentifier>{f1a2b3c4-3333-4d55-8e66-0a1b2c3d4e03}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -273,6 +282,24 @@
     <ClInclude Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.h">
       <Filter>Src\Application\GameObject\Camera\FPSCamera</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Cup\CupConst.h">
+      <Filter>Src\Application\GameObject\Cup</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Cup\Cup.h">
+      <Filter>Src\Application\GameObject\Cup</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Water\WaterConst.h">
+      <Filter>Src\Application\GameObject\Water</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Water\Water.h">
+      <Filter>Src\Application\GameObject\Water</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\UI\UIConst.h">
+      <Filter>Src\Application\GameObject\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\UI\GameUI.h">
+      <Filter>Src\Application\GameObject\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -427,6 +454,15 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.cpp">
       <Filter>Src\Application\GameObject\Camera\FPSCamera</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Cup\Cup.cpp">
+      <Filter>Src\Application\GameObject\Cup</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Water\Water.cpp">
+      <Filter>Src\Application\GameObject\Water</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\UI\GameUI.cpp">
+      <Filter>Src\Application\GameObject\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
