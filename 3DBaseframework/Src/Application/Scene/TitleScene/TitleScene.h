@@ -17,15 +17,16 @@ private:
 	void Event() override;
 	void Init()  override;
 
+	//プレスキーの点滅用変数
 	float m_alphaAdd = 0.01f;
 	float m_alpha = 1.0f;
 
+	//画像テクスチャ
 	KdTexture m_spaceTex;
 	KdTexture m_titleTex;
 	KdTexture m_waveTex;
-	KdTexture m_wave2Tex;
 
-	float m_wave0ScrollX = 0.0f;
+	//波画像のスクロールとサインカーブ用の変数
 	float m_waveScrollX = 0.0f;
 	float m_waveTime = 0.0f;
 };
