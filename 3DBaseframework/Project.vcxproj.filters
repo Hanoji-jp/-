@@ -91,6 +91,9 @@
     <Filter Include="Src\Application\GameObject\GameOver">
       <UniqueIdentifier>{04c311fe-2f50-49bc-80f9-2befaa553813}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\GameOver">
+      <UniqueIdentifier>{bfb750aa-ec71-4db0-88c8-61d3f9526a5a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
