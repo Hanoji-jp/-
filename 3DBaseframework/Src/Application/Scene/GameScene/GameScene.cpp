@@ -1,5 +1,6 @@
 ﻿#include "GameScene.h"
 #include"../SceneManager.h"
+#include"../../GameObject/GameOver/GameOver.h"
 
 void GameScene::Event()
 {
@@ -14,4 +15,8 @@ void GameScene::Event()
 
 void GameScene::Init()
 {
+	// ゲームオーバー
+	std::shared_ptr<GameOver>gameover;
+	gameover = std::make_shared<GameOver>();
+	m_objList.push_back(gameover);
 }

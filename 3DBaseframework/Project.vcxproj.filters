@@ -88,6 +88,9 @@
     <Filter Include="Src\Application\GameObject\Camera\FPSCamera">
       <UniqueIdentifier>{cd662ee1-c913-4e31-addc-42ef89e2668c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\GameOver">
+      <UniqueIdentifier>{04c311fe-2f50-49bc-80f9-2befaa553813}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -258,9 +261,6 @@
     <ClInclude Include="Src\Application\Scene\TitleScene\TitleScene.h">
       <Filter>Src\Application\Scene\TitleScene</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Application\Scene\GameScene\GameScene.h">
-      <Filter>Src\Application\Scene\GameScene</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Application\Scene\BaseScene\BaseScene.h">
       <Filter>Src\Application\Scene\BaseScene</Filter>
     </ClInclude>
@@ -272,6 +272,12 @@
     </ClInclude>
     <ClInclude Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.h">
       <Filter>Src\Application\GameObject\Camera\FPSCamera</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\Scene\GameScene\GameScene.h">
+      <Filter>Src\Application\Scene\GameScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\GameOver\GameOver.h">
+      <Filter>Src\Application\GameObject\GameOver</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -427,6 +433,9 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.cpp">
       <Filter>Src\Application\GameObject\Camera\FPSCamera</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\GameOver\GameOver.cpp">
+      <Filter>Src\Application\GameObject\GameOver</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
