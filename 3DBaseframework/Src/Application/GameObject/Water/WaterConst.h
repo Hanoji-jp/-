@@ -32,4 +32,37 @@ namespace WaterConst
 
 	// 自己発光の強さ（陰影で暗くなりすぎず水色が見えるように）
 	inline constexpr float kEmissiveRate = 0.5f;
+
+	// ===============================================
+	// 2次元グリッド流体（GPUマルチパス）用の定数
+	//  コップ内側の矩形領域に対応させたグリッドで水を解く。
+	//  quantity テクセル = (x,y=運動量, z=質量, w=体積)
+	// ===============================================
+
+	// 流体グリッドの解像度（コップ内側 幅4.0×高さ5.0 の比 4:5 に合わせる）
+	inline constexpr int kGridWidth  = 64;
+	inline constexpr int kGridHeight = 80;
+
+	// セル初期値：質量／体積
+	inline constexpr float kCellWaterMass = 1.0f;	// 水で満たされたセルの質量
+	inline constexpr float kCellAirMass   = 0.001f;	// 水の無いセルの質量（完全な0は避ける）
+	inline constexpr float kCellVolume    = 1.0f;	// セルの体積（全セル共通）
+
+	// 可視化パス（Phase1）の色：空色⇔水色を質量で補間して表示する
+	inline const Math::Color kVisualizeSpaceColor = { 0.87f, 0.93f, 0.98f, 1.0f };
+	inline const Math::Color kVisualizeWaterColor = { 0.20f, 0.55f, 0.90f, 1.0f };
+
+	// ===============================================
+	// Phase2：移流＋重力
+	// ===============================================
+
+	// 重力（1ステップあたりの落下量：グリッドセル単位。row増加＝画面下が +）
+	inline constexpr float kGravityPerStep = 0.1f;
+
+	// 初期の水ブロック（グリッドに対する割合。row0=上）
+	//  上部中央に塊を置き、重力で落下して底に溜まる様子を確認する
+	inline constexpr float kInitBlockLeftRate   = 0.25f;	// 左端
+	inline constexpr float kInitBlockRightRate  = 0.75f;	// 右端
+	inline constexpr float kInitBlockTopRate    = 0.08f;	// 上端（小さいほど上）
+	inline constexpr float kInitBlockBottomRate = 0.42f;	// 下端
 }
