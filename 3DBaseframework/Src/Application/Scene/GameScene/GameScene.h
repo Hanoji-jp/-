@@ -4,6 +4,7 @@
 
 // 前方宣言
 class Water;
+class GameOver;
 
 class GameScene : public BaseScene
 {
@@ -20,4 +21,7 @@ private:
 
 	// 注水を操作する対象の水
 	std::weak_ptr<Water> m_wpWater;
+
+	// 失敗時に表示するゲームオーバー
+	std::weak_ptr<GameOver> m_wpGameOver;
 };

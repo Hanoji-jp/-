@@ -6,8 +6,7 @@
 #include "../../GameObject/Cup/CupConst.h"
 #include "../../GameObject/Water/Water.h"
 #include "../../GameObject/UI/GameUI.h"
-#include "../../GameObject/Desk/Desk.h"
-
+#include"../../GameObject/GameOver/GameOver.h"
 void GameScene::Event()
 {
 	// タイトルへ戻る
@@ -25,10 +24,22 @@ void GameScene::Event()
 		const bool isPouring = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
 		spWater->SetPouring(isPouring);
 
-		// Rキーで水位をリセット
+		// Rキーで水位をリセット（ゲームオーバー表示も消す）
 		if (GetAsyncKeyState('R') & 0x8000)
 		{
 			spWater->Reset();
+			if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Deactivate(); }
+		}
+
+		// 注ぎ終わり（一発勝負確定）でラインに合わなかったらゲームオーバー
+		if (spWater->IsPourFinished())
+		{
+			const UIConst::RyoResult result = spWater->GetResult();
+			const bool missed = (result == UIConst::RyoResult::Under || result == UIConst::RyoResult::Over);
+			if (missed)
+			{
+				if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Activate(); }
+			}
 		}
 	}
 }
@@ -58,9 +69,9 @@ void GameScene::Init()
 	spGameUI->Init();
 	spGameUI->SetTargetWater(spWater);
 	AddObject(spGameUI);
-
-	// 机（コップの土台）
-	std::shared_ptr<Desk> spDesk = std::make_shared<Desk>();
-	spDesk->Init();
-	AddObject(spDesk);
+	// ゲームオーバー（失敗時のみ表示。初期は無効）
+	std::shared_ptr<GameOver> gameover = std::make_shared<GameOver>();
+	gameover->Init();
+	m_objList.push_back(gameover);
+	m_wpGameOver = gameover;
 }
