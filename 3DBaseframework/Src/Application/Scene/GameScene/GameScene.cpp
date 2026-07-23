@@ -60,7 +60,7 @@ void GameScene::Init()
 	AddObject(spWater);
 	m_wpWater = spWater;
 
-	// コップ（枠・目標ライン）：水より後に描いて線を上に出す
+	// コップ（枠・目標ライン）：水より後に描いて線を上に出すaddObject(spWater);
 	std::shared_ptr<Cup> spCup = std::make_shared<Cup>();
 	spCup->Init();
 	AddObject(spCup);
