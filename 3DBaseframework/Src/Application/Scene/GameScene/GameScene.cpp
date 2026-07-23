@@ -6,7 +6,7 @@
 #include "../../GameObject/Cup/CupConst.h"
 #include "../../GameObject/Water/Water.h"
 #include "../../GameObject/UI/GameUI.h"
-
+#include"../../GameObject/GameOver/GameOver.h"
 void GameScene::Event()
 {
 	// タイトルへ戻る
@@ -57,4 +57,9 @@ void GameScene::Init()
 	spGameUI->Init();
 	spGameUI->SetTargetWater(spWater);
 	AddObject(spGameUI);
+	// ゲームオーバー
+	std::shared_ptr<GameOver>gameover;
+	gameover = std::make_shared<GameOver>();
+	gameover->Init();
+	m_objList.push_back(gameover);
 }

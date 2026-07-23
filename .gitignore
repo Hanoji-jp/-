@@ -45,3 +45,9 @@
 3DBaseframework/Src/Application/Shader/Fluid/FluidShader_VS_Advection.shaderInc
 3DBaseframework/Src/Application/Shader/Fluid/FluidShader_PS_Equalization.shaderInc
 3DBaseframework/Src/Application/Shader/Fluid/FluidShader_PS_Pour.shaderInc
+3DBaseframework/Src/Application/Shader/Fluid/FluidShader_PS_FoamToLiquid.shaderInc
+3DBaseframework/Src/Application/Shader/Fluid/FluidShader_PS_FoamBuoyancy.shaderInc
+3DBaseframework/Src/Application/Shader/Fluid/FluidShader_PS_FoamDecay.shaderInc
+3DBaseframework/Src/Application/Shader/Fluid/FluidShader_PS_FoamGen.shaderInc
+3DBaseframework/Src/Application/Shader/Fluid/FluidShader_PS_FoamLoss.shaderInc
+3DBaseframework/Asset/Data/imgui.ini
