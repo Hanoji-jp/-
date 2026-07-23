@@ -3,6 +3,15 @@
 void RyouEffect::Init()
 {
 	//====================
+	// 実行用フラグなど
+	//====================
+	// アクティブ状態フラグ
+	m_activeFlg = false;
+
+	// エフェクト終了フラグ
+	m_endFlg = false;
+
+	//====================
 	// 描画関係
 	//====================
 	// 実体化
@@ -36,8 +45,25 @@ void RyouEffect::Init()
 
 }
 
+// 成功（良）で呼ぶ：演出を最初から再生する
+//  ※GameScene は IsPourFinished()＝Done の間これを毎フレーム呼ぶため、
+//    既に表示中なら何もしない。そうしないと毎フレーム拡縮がリセットされ止まる。
+void RyouEffect::Activate()
+{
+	//if (m_active) { return; }	// 既に表示中なら再スタートしない
+	if (m_activeFlg) { return; }	// 既に表示中なら再スタートしない
+
+	//m_active = true;
+	m_activeFlg = true;
+	m_scale = 0.3f;		// 拡縮を初期値から
+	m_scaleUp = true;	// 拡大方向から始める
+}
+
 void RyouEffect::Update()
 {
+	//if (!m_active) { return; }	// 成功時だけ動く
+	if (!m_activeFlg) { return; }	// 成功時だけ動く
+
 	// 拡縮反復
 	if (m_scaleTime > 0.0f)
 	{
@@ -58,6 +84,9 @@ void RyouEffect::Update()
 
 void RyouEffect::DrawSprite()
 {
+	//if (!m_active) { return; }	// 成功時だけ表示
+	if (!m_activeFlg) { return; }	// 成功時だけ表示
+
 	KdShaderManager::Instance().m_spriteShader.SetMatrix(m_mWorld);
 	KdShaderManager::Instance().m_spriteShader.DrawTex(m_spTex, 0.0f, 0.0f);
 	KdDebugGUI::Instance().AddLog("RyouEffect DrawSprite");

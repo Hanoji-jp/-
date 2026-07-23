@@ -112,6 +112,18 @@
     <Filter Include="Src\Application\GameObject\Effect\EffectBase">
       <UniqueIdentifier>{048c414f-9a42-4b7b-ad55-b6553167530b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Desk">
+      <UniqueIdentifier>{e2988cd9-f434-471f-bf15-af5c91c9ccba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Stand Light">
+      <UniqueIdentifier>{65b1424f-99ea-4407-8374-fba20774218e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\wall">
+      <UniqueIdentifier>{9c3df9c0-d198-4ab7-ae6d-59e13ca678ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Effect\ClearEffectManager">
+      <UniqueIdentifier>{fcc34202-02df-4422-849a-0acb4ca257c8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -328,6 +340,18 @@
     <ClInclude Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.h">
       <Filter>Src\Application\GameObject\Effect\Clear</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Desk\Desk.h">
+      <Filter>Src\Application\GameObject\Desk</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\StandLight\StandLight.h">
+      <Filter>Src\Application\GameObject\Stand Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Wall\Wall.h">
+      <Filter>Src\Application\GameObject\wall</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Effect\ClearEffectManager\ClearEffectManager.h">
+      <Filter>Src\Application\GameObject\Effect\ClearEffectManager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -505,6 +529,18 @@
     <ClCompile Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.cpp">
       <Filter>Src\Application\GameObject\Effect\Clear</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Desk\Desk.cpp">
+      <Filter>Src\Application\GameObject\Desk</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\StandLight\StandLight.cpp">
+      <Filter>Src\Application\GameObject\Stand Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Wall\Wall.cpp">
+      <Filter>Src\Application\GameObject\wall</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Effect\ClearEffectManager\ClearEffectManager.cpp">
+      <Filter>Src\Application\GameObject\Effect\ClearEffectManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Framework\Shader\inc_KdCommon.hlsli">
@@ -579,5 +615,6 @@
     <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_FoamToLiquid.hlsl" />
     <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_FoamDecay.hlsl" />
     <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_MassScale.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_MaskEnforce.hlsl" />
   </ItemGroup>
 </Project>

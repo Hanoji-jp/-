@@ -8,6 +8,11 @@
 #include "../../GameObject/UI/GameUI.h"
 #include"../../GameObject/GameOver/GameOver.h"
 #include"../../GameObject/Effect/Clear/RyouEffect/RyouEffect.h"
+#include "../../GameObject/Desk/Desk.h"
+#include "../../GameObject/StandLight/StandLight.h"
+#include "../../GameObject/Wall/Wall.h"
+#include "../../GameObject/Window/Window.h"
+
 void GameScene::Event()
 {
 	// タイトルへ戻る
@@ -25,20 +30,26 @@ void GameScene::Event()
 		const bool isPouring = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
 		spWater->SetPouring(isPouring);
 
-		// Rキーで水位をリセット（ゲームオーバー表示も消す）
+		// Rキーで水位をリセット（結果演出も消す）
 		if (GetAsyncKeyState('R') & 0x8000)
 		{
 			spWater->Reset();
 			if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Deactivate(); }
+			if (auto spRyou = m_wpRyou.lock()) { spRyou->Deactivate(); }
 		}
 
-		// 注ぎ終わり（一発勝負確定）でラインに合わなかったらゲームオーバー
+		// 注ぎ終わり（一発勝負確定）で結果に応じて演出を出す
 		if (spWater->IsPourFinished())
 		{
 			const UIConst::RyoResult result = spWater->GetResult();
-			const bool missed = (result == UIConst::RyoResult::Under || result == UIConst::RyoResult::Over);
-			if (missed)
+			if (result == UIConst::RyoResult::Ryo)
 			{
+				// ぴったり（良）→ 良演出
+				if (auto spRyou = m_wpRyou.lock()) { spRyou->Activate(); }
+			}
+			else if (result == UIConst::RyoResult::Under || result == UIConst::RyoResult::Over)
+			{
+				// ラインに合わなかった → ゲームオーバー
 				if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Activate(); }
 			}
 		}
@@ -70,18 +81,42 @@ void GameScene::Init()
 	spGameUI->Init();
 	spGameUI->SetTargetWater(spWater);
 	AddObject(spGameUI);
+
+	// 机（コップの土台）：GameOverの全画面暗幕より先に描くため、GameOverより前に追加する
+	std::shared_ptr<Desk> spDesk = std::make_shared<Desk>();
+	spDesk->Init();
+	AddObject(spDesk);
+
+	//====================
+	// オブジェクト
+	//====================
+	//----- エフェクト -----
+	// 良
+	std::shared_ptr<RyouEffect> _spRyou;
+	_spRyou = std::make_shared<RyouEffect>();
+	m_objList.push_back(_spRyou);
+	_spRyou->Init();
+	m_wpRyou = _spRyou;
+
 	// ゲームオーバー（失敗時のみ表示。初期は無効）
+	//  全画面の暗幕なので、シーンの3D物より後（最後）に描く必要がある。
 	std::shared_ptr<GameOver> gameover = std::make_shared<GameOver>();
 	gameover->Init();
 	m_objList.push_back(gameover);
 	m_wpGameOver = gameover;
-	//====================
-	// オブジェクト
-	//==================== 
-	//----- エフェクト -----
-	// 良
-	//std::shared_ptr<RyouEffect> _spRyou;
-	//_spRyou = std::make_shared<RyouEffect>();
-	//m_objList.push_back(_spRyou);
-	//_spRyou->Init();
+
+	// 机（インテリア）
+	std::shared_ptr<StandLight> spLight = std::make_shared<StandLight>();
+	spLight->Init();
+	AddObject(spLight);
+
+	// 壁（インテリア）
+	std::shared_ptr<Wall> spWall = std::make_shared<Wall>();
+	spWall->Init();
+	AddObject(spWall);
+
+	// 窓（インテリア）
+	std::shared_ptr<Window> spWindow = std::make_shared<Window>();
+	spWindow->Init();
+	AddObject(spWindow);
 }

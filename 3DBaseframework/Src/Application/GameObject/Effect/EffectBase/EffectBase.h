@@ -12,14 +12,31 @@ public:
 	virtual void DrawLit()						override {}
 	virtual void DrawSprite()					override {}
 
+	// アクティブ化　成功（良）時だけ表示する。初期は無効。
+	virtual void Activate() { m_activeFlg = true; }
+
+	// 非アクティブ化
+	virtual void Deactivate() { m_activeFlg = false; }
+
+	// アクティブ状態確認関数
+	virtual bool IsActiveFlg() const { return m_activeFlg; }
+
+	// 終了確認関数
+	virtual bool IsEndFlg() const { return m_endFlg; }
+
 	// 拡縮関数
 	virtual void ScalingIteration(float _scaleMax, float _scaleMin, float _speed);
 
-	// 文字を置く関数
-	virtual void PlaceChara();
-
-
 protected:
+	//====================
+	// 実行用フラグなど
+	//====================
+	// アクティブ状態フラグ
+	bool m_activeFlg = false;
+
+	// エフェクト終了フラグ
+	bool m_endFlg = false;
+
 	//====================
 	// 描画関係
 	//====================
@@ -39,6 +56,11 @@ protected:
 
 	// 拡縮
 	float	m_scale		= 1.0f;
+
+	// 拡縮反復の向き（true=拡大中/ false=縮小中）。
+	//  ※以前は関数ローカル static で全インスタンス共有かつ永続だったため、
+	//    前の状態が残って拡縮が止まって見えることがあった。インスタンスごとに持つ。
+	bool	m_scaleUp	= true;
 
 	//====================
 	// 移動関係

@@ -3,6 +3,15 @@
 void EffectBase::Init()
 {
 	//====================
+	// 実行用フラグなど
+	//====================
+	// アクティブ状態フラグ
+	m_activeFlg = false;
+
+	// エフェクト終了フラグ
+	m_endFlg = false;
+
+	//====================
 	// 描画関係
 	//====================
 	// 行列 (拡大、回転、移動)
@@ -32,9 +41,7 @@ void EffectBase::Init()
 
 void EffectBase::ScalingIteration(float _scaleMax, float _scaleMin, float _speed)
 {
-	static bool _flg = true;
-
-	if (_flg)
+	if (m_scaleUp)
 	{
 		m_scale += _speed;
 	}
@@ -45,11 +52,11 @@ void EffectBase::ScalingIteration(float _scaleMax, float _scaleMin, float _speed
 
 	if (m_scale >= _scaleMax)
 	{
-		_flg = false;
+		m_scaleUp = false;
 	}
 	else if (m_scale < _scaleMin)
 	{
-		_flg = true;
+		m_scaleUp = true;
 	}
 }
 

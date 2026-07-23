@@ -2,46 +2,36 @@
 
 void GameOver::Init()
 {
-	// 文字（終了）
-	m_polygon = std::make_shared<KdSquarePolygon>();
-	m_polygon->SetMaterial("Asset/Textures/gameover.png");
-
-	// 大きさ（終了）
-	m_polygon->SetScale(1.2f);
-
-	// たいとる,やりなおし
-	m_result = std::make_shared<KdSquarePolygon>();
-	m_result->SetMaterial("Asset/Textures/resultUI.png");
-
-	// 大きさと位置（たいとる,やりなおし）
-	m_result->SetScale(1.0f);
-	m_resultOffset = { -0.1f,-0.3f,0.0f };
-
-	// 黒背景
-	m_darkOverlay = std::make_shared<KdSquarePolygon>();
-	m_darkOverlay->SetMaterial("Asset/Textures/kuro.png");
-
-	// 大きさと透明度（黒背景）
-	m_darkOverlay->SetScale(100.0f);
-	std::vector<Math::Color> darkColors(4, Math::Color(0.0f, 0.0f, 0.0f, 0.6f));
-	m_darkOverlay->SetVertexColor(darkColors);
+	// 暗幕・「終了」・リザルトの画像を読み込む
+	m_darkTex.Load("Asset/Textures/kuro.png");
+	m_goTex.Load("Asset/Textures/gameover.png");
+	m_resultTex.Load("Asset/Textures/resultUI.png");
 
 	m_phase = Phase::TextFalling;
 	m_frame = 0;
+	m_textY = m_textStartY;
+	m_resultAlpha = 0.0f;
 }
 
-// ライン不一致で終了したときに呼ぶ：演出を最初から再生する
+// 失敗で終了したときに呼ぶ（落下演出を頭から再生する）
+//  ※GameScene は IsPourFinished()＝Done の間これを毎フレーム呼ぶため、
+//    既に表示中なら何もしない。そうしないと毎フレーム frame=0 にリセットされ
+//    落下アニメが進まない（特にリトライ後に顕著）。
 void GameOver::Activate()
 {
+	if (m_active) { return; }	// 既に表示中なら再スタートしない
+
 	m_active = true;
-	m_phase = Phase::TextFalling;
-	m_frame = 0;
-	m_textOffset = { 0.0f, 0.0f, 0.0f };
+	m_phase  = Phase::TextFalling;
+	m_frame  = 0;
+	m_textY  = m_textStartY;
+	m_resultAlpha = 0.0f;
 }
 
 void GameOver::Update()
 {
-	if (!m_active) { return; }	// 失敗で終了したときだけ動く
+	// 無効の間は何もしない（失敗時のみ表示）
+	if (!m_active) { return; }
 
 	m_frame++;
 
@@ -49,50 +39,50 @@ void GameOver::Update()
 	{
 		float t = std::min(1.0f, (float)m_frame / (float)m_fallDuration);
 
+		// イージング（速く落ちて、ゆっくり止まる）
 		float easedT = 1.0f - std::powf(1.0f - t, 3.0f);
 
-		m_textOffset.y = m_textStartY + (m_textEndY - m_textStartY) * easedT;
+		m_textY = m_textStartY + (m_textEndY - m_textStartY) * easedT;
 
 		// 落下完了 → リザルト表示フェーズへ
 		if (t >= 1.0f)
 		{
 			m_phase = Phase::ShowResult;
-			m_frame = 0; 
+			m_frame = 0;
 		}
 	}
 	else if (m_phase == Phase::ShowResult)
 	{
-		// リザルトの明滅
-		if (!m_result) return;
-		float t = (std::sinf(m_frame * 0.05f) + 1.0f) * 0.5f;
-
-		// 明滅範囲（完全に消したいなら 0.0f に変更)
-		float alpha = 0.2f + 0.7f * t;
-
-		std::vector<Math::Color> resultColors(4, Math::Color(0.0f, 0.0f, 0.0f, alpha));
-		m_result->SetVertexColor(resultColors);
+		// リザルトの明滅（0.2～0.9 を行き来）
+		float s = (std::sinf(m_frame * 0.05f) + 1.0f) * 0.5f;
+		m_resultAlpha = 0.2f + 0.7f * s;
 	}
 }
 
-void GameOver::DrawLit()
+void GameOver::DrawSprite()
 {
-	if (!m_active) { return; }	// 失敗で終了したときだけ表示
-	if (!m_polygon) return;
+	// 無効の間は描かない（失敗時のみ表示）
+	if (!m_active) { return; }
 
-	if (m_darkOverlay)
-	{
-		KdShaderManager::Instance().ChangeBlendState(KdBlendState::Alpha);
+	KdSpriteShader& sprite = KdShaderManager::Instance().m_spriteShader;
 
-		KdShaderManager::Instance().m_StandardShader.DrawPolygon(*m_darkOverlay, m_mWorld);
+	// 透過合成（暗幕・画像のアルファを効かせる）
+	KdShaderManager::Instance().ChangeBlendState(KdBlendState::Alpha);
 
-		KdShaderManager::Instance().UndoBlendState();
-	}
-	Math::Matrix textWorld = m_mWorld * Math::Matrix::CreateTranslation(m_textOffset);
-	KdShaderManager::Instance().m_StandardShader.DrawPolygon(*m_polygon, textWorld);
-	
+	// 黒の暗幕（kuro.png を全画面に貼る。中心原点・+Y上のピクセル座標）
+	//  DrawTex は実績のあるパス。色(1,1,1,α)で不透明度だけ与える。
+	Math::Color dark(1.0f, 1.0f, 1.0f, 0.6f);
+	sprite.DrawTex(&m_darkTex, 0, 0, kOverlayWidth, kOverlayHeight, nullptr, &dark);
+
+	// 「終了」の文字（上から落ちてくる）
+	sprite.DrawTex(&m_goTex, 0, (int)m_textY, kGoWidth, kGoHeight);
+
+	// リザルト（着地後に明滅表示）
 	if (m_phase == Phase::ShowResult)
 	{
-		Math::Matrix resultWorld = m_mWorld * Math::Matrix::CreateTranslation(m_resultOffset);
-		KdShaderManager::Instance().m_StandardShader.DrawPolygon(*m_result, resultWorld);
+		Math::Color col(1.0f, 1.0f, 1.0f, m_resultAlpha);
+		sprite.DrawTex(&m_resultTex, 0, (int)m_resultY, kResultWidth, kResultHeight, nullptr, &col);
 	}
+
+	KdShaderManager::Instance().UndoBlendState();
 }

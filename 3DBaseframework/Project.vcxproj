@@ -279,14 +279,19 @@
     <ClInclude Include="Src\Application\GameObject\Clear\Clear.h" />
     <ClInclude Include="Src\Application\GameObject\Cup\Cup.h" />
     <ClInclude Include="Src\Application\GameObject\Cup\CupConst.h" />
+    <ClInclude Include="Src\Application\GameObject\Desk\Desk.h" />
+    <ClInclude Include="Src\Application\GameObject\Effect\ClearEffectManager\ClearEffectManager.h" />
     <ClInclude Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.h" />
     <ClInclude Include="Src\Application\GameObject\Effect\EffectBase\EffectBase.h" />
     <ClInclude Include="Src\Application\GameObject\GameOver\GameOver.h" />
+    <ClInclude Include="Src\Application\GameObject\StandLight\StandLight.h" />
     <ClInclude Include="Src\Application\GameObject\UI\GameUI.h" />
     <ClInclude Include="Src\Application\GameObject\UI\UIConst.h" />
+    <ClInclude Include="Src\Application\GameObject\Wall\Wall.h" />
     <ClInclude Include="Src\Application\GameObject\Water\FluidField.h" />
     <ClInclude Include="Src\Application\GameObject\Water\Water.h" />
     <ClInclude Include="Src\Application\GameObject\Water\WaterConst.h" />
+    <ClInclude Include="Src\Application\GameObject\Window\Window.h" />
     <ClInclude Include="Src\Application\main.h" />
     <ClInclude Include="Src\Application\Scene\BaseScene\BaseScene.h" />
     <ClInclude Include="Src\Application\Scene\GameScene\GameScene.h" />
@@ -345,12 +350,17 @@
     <ClCompile Include="Src\Application\GameObject\Camera\TPSCamera\TPSCamera.cpp" />
     <ClCompile Include="Src\Application\GameObject\Clear\Clear.cpp" />
     <ClCompile Include="Src\Application\GameObject\Cup\Cup.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Desk\Desk.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Effect\ClearEffectManager\ClearEffectManager.cpp" />
     <ClCompile Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.cpp" />
     <ClCompile Include="Src\Application\GameObject\Effect\EffectBase\EffectBase.cpp" />
     <ClCompile Include="Src\Application\GameObject\GameOver\GameOver.cpp" />
+    <ClCompile Include="Src\Application\GameObject\StandLight\StandLight.cpp" />
     <ClCompile Include="Src\Application\GameObject\UI\GameUI.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Wall\Wall.cpp" />
     <ClCompile Include="Src\Application\GameObject\Water\FluidField.cpp" />
     <ClCompile Include="Src\Application\GameObject\Water\Water.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Window\Window.cpp" />
     <ClCompile Include="Src\Application\main.cpp" />
     <ClCompile Include="Src\Application\Scene\BaseScene\BaseScene.cpp" />
     <ClCompile Include="Src\Application\Scene\GameScene\GameScene.cpp" />
@@ -534,6 +544,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_MassScale.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_MaskEnforce.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
