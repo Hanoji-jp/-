@@ -464,6 +464,16 @@ void FluidField::Step(float deltaTime, bool pouring)
 	(void)deltaTime;
 
 	KdShaderManager& sm = KdShaderManager::Instance();
+	ID3D11DeviceContext* rc = KdDirect3D::Instance().WorkDevContext();
+
+	// 流体パスは RT・ビューポート（＝ラスタライザのスケール）を変える。
+	// 後続の 2D/3D 描画（コップ・GameOver等）へ漏らさないよう保存し、最後に必ず戻す。
+	ID3D11RenderTargetView* savedRTV = nullptr;
+	ID3D11DepthStencilView* savedDSV = nullptr;
+	rc->OMGetRenderTargets(1, &savedRTV, &savedDSV);
+	UINT savedNumVP = 1;
+	D3D11_VIEWPORT savedVP = {};
+	rc->RSGetViewports(&savedNumVP, &savedVP);
 
 	// フルスクリーン／撒き込みクアッドが裏面カリングされないようにする
 	sm.ChangeRasterizerState(KdRasterizerState::CullNone);
@@ -519,8 +529,14 @@ void FluidField::Step(float deltaTime, bool pouring)
 	sm.UndoRasterizerState();
 
 	// 次フレームの測定用に、確定した物理量をステージングへコピーしておく
-	KdDirect3D::Instance().WorkDevContext()->CopyResource(m_massReadback.Get(), m_quantity.current->WorkResource());
+	rc->CopyResource(m_massReadback.Get(), m_quantity.current->WorkResource());
 	m_readbackValid = true;
+
+	// 保存しておいた RT・ビューポートを復元（後続描画のスケール漏れを防ぐ）
+	rc->OMSetRenderTargets(1, &savedRTV, savedDSV);
+	rc->RSSetViewports(1, &savedVP);
+	if (savedRTV) { savedRTV->Release(); }
+	if (savedDSV) { savedDSV->Release(); }
 }
 
 // ===================================================

@@ -51,3 +51,4 @@
 3DBaseframework/Src/Application/Shader/Fluid/FluidShader_PS_FoamGen.shaderInc
 3DBaseframework/Src/Application/Shader/Fluid/FluidShader_PS_FoamLoss.shaderInc
 3DBaseframework/Asset/Data/imgui.ini
+3DBaseframework/Src/Application/Shader/Fluid/FluidShader_PS_MassScale.shaderInc

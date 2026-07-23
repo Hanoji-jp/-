@@ -11,7 +11,15 @@ public:
 	void Update()override;
 	void DrawLit()override;
 
+	// 表示の有効／無効（ライン不一致で終了したときだけ有効化する）
+	void Activate();
+	void Deactivate() { m_active = false; }
+	bool IsActive() const { return m_active; }
+
 private:
+
+	// 表示中かどうか（false のときは Update も DrawLit も何もしない）
+	bool m_active = false;
 
 	enum class Phase
 	{

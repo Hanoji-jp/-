@@ -30,8 +30,19 @@ void GameOver::Init()
 	m_frame = 0;
 }
 
+// ライン不一致で終了したときに呼ぶ：演出を最初から再生する
+void GameOver::Activate()
+{
+	m_active = true;
+	m_phase = Phase::TextFalling;
+	m_frame = 0;
+	m_textOffset = { 0.0f, 0.0f, 0.0f };
+}
+
 void GameOver::Update()
-{	
+{
+	if (!m_active) { return; }	// 失敗で終了したときだけ動く
+
 	m_frame++;
 
 	if (m_phase == Phase::TextFalling)
@@ -65,6 +76,7 @@ void GameOver::Update()
 
 void GameOver::DrawLit()
 {
+	if (!m_active) { return; }	// 失敗で終了したときだけ表示
 	if (!m_polygon) return;
 
 	if (m_darkOverlay)

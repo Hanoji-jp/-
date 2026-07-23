@@ -24,10 +24,22 @@ void GameScene::Event()
 		const bool isPouring = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
 		spWater->SetPouring(isPouring);
 
-		// Rキーで水位をリセット
+		// Rキーで水位をリセット（ゲームオーバー表示も消す）
 		if (GetAsyncKeyState('R') & 0x8000)
 		{
 			spWater->Reset();
+			if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Deactivate(); }
+		}
+
+		// 注ぎ終わり（一発勝負確定）でラインに合わなかったらゲームオーバー
+		if (spWater->IsPourFinished())
+		{
+			const UIConst::RyoResult result = spWater->GetResult();
+			const bool missed = (result == UIConst::RyoResult::Under || result == UIConst::RyoResult::Over);
+			if (missed)
+			{
+				if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Activate(); }
+			}
 		}
 	}
 }
@@ -57,9 +69,9 @@ void GameScene::Init()
 	spGameUI->Init();
 	spGameUI->SetTargetWater(spWater);
 	AddObject(spGameUI);
-	// ゲームオーバー
-	std::shared_ptr<GameOver>gameover;
-	gameover = std::make_shared<GameOver>();
+	// ゲームオーバー（失敗時のみ表示。初期は無効）
+	std::shared_ptr<GameOver> gameover = std::make_shared<GameOver>();
 	gameover->Init();
 	m_objList.push_back(gameover);
+	m_wpGameOver = gameover;
 }
