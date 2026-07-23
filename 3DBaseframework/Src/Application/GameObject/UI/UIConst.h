@@ -16,7 +16,9 @@ namespace UIConst
 
 	// 目標ラインとの許容誤差（水位0.0～1.0に対する割合）
 	//  |fillRate - 目標| がこれ以内なら「良！」
-	inline constexpr float kRyoTolerance = 0.03f;
+	//  流体シムの沈静後の水面には実行ごとの小さなバラつきがあるため、狭すぎると良が出ない。
+	//  ±5%＝見た目でライン付近に合わせれば良が取れる、現実的な難度。
+	inline constexpr float kRyoTolerance = 0.06f;
 
 	// TODO: 「良！」文字の位置・色などの表示用定数をここに定義する
 }

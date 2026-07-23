@@ -7,8 +7,11 @@
 #include "../../GameObject/Water/Water.h"
 #include "../../GameObject/UI/GameUI.h"
 #include"../../GameObject/GameOver/GameOver.h"
+#include"../../GameObject/GameStart/GameStart.h"
 #include"../../GameObject/Effect/Clear/RyouEffect/RyouEffect.h"
 #include "../../GameObject/Desk/Desk.h"
+#include "../../GameObject/DrinkBar/DrinkBar.h"
+#include "../../GameObject/Tuning/Tuning.h"
 #include "../../GameObject/StandLight/StandLight.h"
 #include "../../GameObject/Wall/Wall.h"
 
@@ -26,7 +29,17 @@ void GameScene::Event()
 	if (auto spWater = m_wpWater.lock())
 	{
 		// スペースキーを押している間だけ水を注ぐ
-		const bool isPouring = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
+		const bool spaceDown = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
+
+		// タイトルからSPACEで入場した直後、押しっぱなしのSPACEでいきなり注水＝即判定に
+		// なってしまうのを防ぐ。一度SPACEが離されるまで注水を受け付けない。
+		if (!spaceDown) { m_pourArmed = true; }
+
+		// 開始演出（水をドンピシャで入れろ→3・2・1→始めっ）が終わるまでは注水させない。
+		bool introDone = true;
+		if (auto spStart = m_wpGameStart.lock()) { introDone = spStart->IsFinished(); }
+
+		const bool isPouring = spaceDown && m_pourArmed && introDone;
 		spWater->SetPouring(isPouring);
 
 		// Rキーで水位をリセット（結果演出も消す）
@@ -57,6 +70,9 @@ void GameScene::Event()
 
 void GameScene::Init()
 {
+	// 保存済みの調整値（コップ／水の出る位置／ドリンクバー）をCSVから読み込む
+	Tuning::LoadCsv();
+
 	// コップを正面から見るカメラ
 	std::shared_ptr<CameraBase> spCamera = std::make_shared<CameraBase>();
 	spCamera->Init();
@@ -86,6 +102,11 @@ void GameScene::Init()
 	spDesk->Init();
 	AddObject(spDesk);
 
+	// ドリンクバー（ディスペンサー）：ノズルの下にコップを置いて水を注ぐ
+	std::shared_ptr<DrinkBar> spDrinkBar = std::make_shared<DrinkBar>();
+	spDrinkBar->Init();
+	AddObject(spDrinkBar);
+
 	//====================
 		// オブジェクト
 		//====================
@@ -113,4 +134,11 @@ void GameScene::Init()
 	std::shared_ptr<Wall> spWall = std::make_shared<Wall>();
 	spWall->Init();
 	AddObject(spWall);
+
+	// 開始演出（水をドンピシャで入れろ→3・2・1→始めっ）。最後に追加＝スプライトが最前面に出る。
+	//  これが終わるまで注水は受け付けない（Eventでゲート）。
+	std::shared_ptr<GameStart> spGameStart = std::make_shared<GameStart>();
+	spGameStart->Init();
+	AddObject(spGameStart);
+	m_wpGameStart = spGameStart;
 }

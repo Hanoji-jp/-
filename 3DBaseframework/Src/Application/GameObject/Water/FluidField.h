@@ -52,8 +52,10 @@ private:
 	// 全セルの初期 quantity データ（行優先。row0=上、row増加=下＝重力方向）を作る
 	void BuildInitialQuantity(std::vector<Math::Vector4>& out) const;
 
-	// コップ形状のソリッドマスク（r:1=内側/0=壁）を多角形から作る
-	void BuildSolidMask(std::vector<Math::Vector4>& out) const;
+	// コップ形状のソリッドマスク（r:1=内側/0=壁）を多角形から作る。
+	//  chuteOpen=true：縁の上のシュート（落水路）を中央チャネルとして開ける（注水中用）。
+	//  chuteOpen=false：縁の上を全て壁で塞ぐ＝コップに蓋（止水後、水が上へ抜けるのを防ぐ）。
+	void BuildSolidMask(std::vector<Math::Vector4>& out, bool chuteOpen) const;
 
 	// フルスクリーンパスを1回描画する（src を t0 に、ps で dst へ書き込む）
 	//  additive=true で純加算ブレンド（upsampleの圧力補正加算に使う）
@@ -83,7 +85,8 @@ private:
 		Math::Vector4 WaterColor;	// 水の色
 		Math::Vector4 SpaceColor;	// 空(水なし)の色
 		Math::Vector4 FoamColor;	// 泡の色
-		Math::Vector4 FoamParams;	// x=泡の見え方ゲイン
+		Math::Vector4 FoamParams;	// x=泡ゲイン, y=塗りLo, z=塗りHi, w=実測水面高さ(0..1)
+		Math::Vector4 ExtraParams;	// x=波の位相(時間), y=中央X割合, z=注水帯の半幅割合, w=波の振幅
 	};
 
 	// 泡（炭酸）パスの定数バッファ
@@ -110,6 +113,8 @@ private:
 	{
 		Math::Vector2 Gravity;		// 重力（row増加方向＝画面下が +）
 		Math::Vector2 GridSize;		// グリッド解像度 (W, H)
+		float         Damp;			// 運動量減衰（速度に掛ける。1未満で沈静化）
+		Math::Vector3 Pad;
 	};
 
 	// 移流用の頂点（1セル1点：セル中心のピクセル座標）
@@ -174,7 +179,10 @@ private:
 
 	// コップ形状マスク（自由多角形→グリッド。r:1=内側/0=壁）
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psMaskEnforce;	// 壁セルを0にする
-	std::shared_ptr<KdTexture>	m_solid = nullptr;				// 形状マスク（静的）
+	std::shared_ptr<KdTexture>	m_solid       = nullptr;		// 現在アクティブなマスク（下記2枚のどちらかを指す）
+	std::shared_ptr<KdTexture>	m_solidOpen   = nullptr;		// シュートを開けたマスク（注水中）
+	std::shared_ptr<KdTexture>	m_solidClosed = nullptr;		// シュートを塞いだマスク（止水中＝蓋）
+	int							m_framesSinceRelease = 100000;	// 止水からの経過フレーム（蓋をするまでの遅延用）
 
 	// 注水・補填
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psPour;			// 注水
@@ -191,6 +199,8 @@ private:
 	KdConstantBuffer<cbMassScale>	m_cbMassScale;					// スケール率
 	bool	m_readbackValid = false;	// 前フレームのコピーが読めるか
 	float	m_massScale = 1.0f;			// 今回適用するスケール率
+	float	m_measuredLevel = 0.0f;		// 実測の水面高さ（0=空～1=満杯）。判定に使う
+	float	m_stepCount = 0.0f;			// ステップ数（水面の波アニメの位相に使う）
 
 	// 炭酸：泡
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psFoamGen;		// 泡の発生

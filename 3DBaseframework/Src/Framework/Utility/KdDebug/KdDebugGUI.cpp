@@ -1,6 +1,7 @@
 ﻿#include "../../../Application/main.h"
 
 #include "KdDebugGUI.h"
+#include "../../../Application/GameObject/Tuning/Tuning.h"	// 実行時調整ウィンドウ
 
 KdDebugGUI::KdDebugGUI()
 {}
@@ -60,6 +61,9 @@ void KdDebugGUI::GuiProcess()
 
 	// ログウィンドウ
 	m_uqLog->Draw("Log Window");
+
+	// 実行時調整ウィンドウ（コップ／水の出る位置／ドリンクバー）
+	Tuning::DrawImGui();
 
 	//=====================================================
 	// ログ出力 ・・・ AddLog("～") で追加

@@ -1,39 +1,58 @@
 // ===================================================
-// 流体 equalization（質量・体積の是正：非圧縮と拡散の補正）
-//  ・体積 w は常に 1 へ緩和（非圧縮の維持）
-//  ・余剰(w>1)は内容に比例して削る
-//  ・不足(w<1)の「質量」補充は “すでに水のセル” だけに限定する
-//    （空気セルに幻の水を足さない＝浮遊ノイズを防ぐ）。
-//  これで移流の数値拡散で薄まった水を濃く保ちつつ、水量が減らず、空気も汚れない。
+// Anti-diffusion pass (mass sharpening / re-concentration).
+//  The advection's bilinear scatter blurs the water/air interface every frame,
+//  so the mass (z) of a settled pool slowly diffuses upward and the measured
+//  surface drifts down. This pass reverses that blur with a conservative
+//  "negative Laplacian" on z: mass flows from lower-density cells toward
+//  higher-density neighbours (opposite of diffusion), sharpening the interface
+//  while conserving total mass (paired fluxes cancel; walls = zero flux).
+//  Total is also pinned by the separate mass-normalization pass.
 // ===================================================
 
 Texture2D<float4> g_quantity : register(t0);
+Texture2D<float4> g_solid    : register(t1);	// r: 1 = inside cup / 0 = wall
 
 cbuffer cbEqualization : register(b0)
 {
-	float  g_surplusRate;	// 余剰を削る率
-	float  g_deficitRate;	// 不足を補う率
+	float  g_surplusRate;	// unused here
+	float  g_deficitRate;	// anti-diffusion strength (per step)
 	float2 _pad;
-	float4 g_deficitRatio;	// 補充で加える比率 (0, 0, 補充密度, 1)
+	float4 g_deficitRatio;	// unused here
 };
-
-static const float kWaterGate = 0.25;	// これ未満の質量は「水ではない」＝質量補充しない
 
 float4 main(float4 svPos : SV_Position) : SV_Target
 {
-	int2 c = int2(svPos.xy);
+	uint W, H;
+	g_quantity.GetDimensions(W, H);
+
+	int2   c = int2(svPos.xy);
 	float4 q = g_quantity.Load(int3(c, 0));
 
-	// 余剰(w>1)は内容に比例して削る（質量・体積とも）
-	float4 surplusRatio = q / max(q.w, 1.0);
-	q -= g_surplusRate * max(q.w - 1.0, 0.0) * surplusRatio;
+	// Walls are left untouched.
+	if (g_solid.Load(int3(c, 0)).r < 0.5) { return q; }
 
-	// 不足(w<1)を補う：体積は常に1へ、質量は水セルのみ濃く戻す
-	float deficit = g_deficitRate * max(1.0 - q.w, 0.0);
-	float waterGate = saturate(q.z / kWaterGate);	// 空気(低質量)は0＝質量を足さない
-	q.z += deficit * g_deficitRatio.z * waterGate;
-	q.w += deficit * g_deficitRatio.w;
+	const float zc = q.z;
 
-	q.zw = max(q.zw, float2(0.0, 0.0));
+	// Sum of (neighbour z - zc) over the 4-neighbourhood.
+	//  A wall neighbour is treated as = zc (zero flux at the boundary),
+	//  which keeps the operator mass-conserving inside the cup.
+	int2 nb[4] =
+	{
+		int2(c.x - 1, c.y), int2(c.x + 1, c.y),
+		int2(c.x, c.y - 1), int2(c.x, c.y + 1),
+	};
+
+	float lap = 0.0;
+	[unroll]
+	for (int i = 0; i < 4; ++i)
+	{
+		int2 p = clamp(nb[i], int2(0, 0), int2((int)W - 1, (int)H - 1));
+		float solidN = g_solid.Load(int3(p, 0)).r;
+		float zn = (solidN < 0.5) ? zc : g_quantity.Load(int3(p, 0)).z;
+		lap += (zn - zc);
+	}
+
+	// Anti-diffusion: move z against the Laplacian (sharpen). Conservative.
+	q.z = max(zc - g_deficitRate * lap, 0.0);
 	return q;
 }
