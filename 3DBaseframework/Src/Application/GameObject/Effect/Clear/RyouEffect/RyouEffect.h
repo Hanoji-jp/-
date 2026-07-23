@@ -11,5 +11,7 @@ public:
 	void DrawSprite()					override;
 
 private:
+	// 拡縮の時間管理用
+	float m_scaleTime = 0.0f;	
 
 };

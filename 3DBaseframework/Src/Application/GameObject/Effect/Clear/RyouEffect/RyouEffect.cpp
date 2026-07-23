@@ -28,12 +28,26 @@ void RyouEffect::Init()
 	// 座標
 	m_pos = { 0.0f,0.0f,0.0f };
 
+	//====================
+	// エフェクト
+	//====================
+	// 拡縮の時間管理用
+	m_scaleTime = 60.0f;
+
 }
 
 void RyouEffect::Update()
 {
 	// 拡縮反復
-	ScalingIteration(2.0f,0.3f,0.8f);
+	if (m_scaleTime > 0.0f)
+	{
+		m_scaleTime--;
+
+		// 拡縮反復
+		//ScalingIteration(2.0f, 0.3f, 0.8f);
+	}
+	
+	PlaceChara();
 
 	// 行列
 	m_mScale = Math::Matrix::CreateScale(m_scale);

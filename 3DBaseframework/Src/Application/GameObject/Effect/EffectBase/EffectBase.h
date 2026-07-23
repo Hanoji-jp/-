@@ -15,6 +15,9 @@ public:
 	// 拡縮関数
 	virtual void ScalingIteration(float _scaleMax, float _scaleMin, float _speed);
 
+	// 文字を置く関数
+	virtual void PlaceChara();
+
 
 protected:
 	//====================
