@@ -8,6 +8,7 @@
 #include "../../GameObject/UI/GameUI.h"
 #include"../../GameObject/GameOver/GameOver.h"
 #include"../../GameObject/Effect/Clear/RyouEffect/RyouEffect.h"
+#include "../../GameObject/Desk/Desk.h"
 void GameScene::Event()
 {
 	// タイトルへ戻る
@@ -91,5 +92,11 @@ void GameScene::Init()
 	m_objList.push_back(_spRyou);
 	_spRyou->Init();
 	m_wpRyou = _spRyou;
+
+	// 机（コップの土台）
+	std::shared_ptr<Desk> spDesk = std::make_shared<Desk>();
+	spDesk->Init();
+	AddObject(spDesk);
 }
+
 
