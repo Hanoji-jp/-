@@ -17,6 +17,20 @@ namespace CupConst
 	const float kInnerLeftX   = kCenterX - kInnerWidth * 0.5f;
 	const float kInnerRightX  = kCenterX + kInnerWidth * 0.5f;
 
+	// コップ内側の輪郭（自由多角形。世界座標。上辺＝開口＝水面）
+	//  水はこの多角形の内側にだけ溜まる。頂点を差し替えればどんな形にもできる。
+	//  並びは 上左(開口) → 左壁 → 底 → 右壁 → 上右(開口) の順。
+	//  最後(上右)から最初(上左)へ戻る辺が「開口」＝壁は描かない。
+	inline const std::vector<Math::Vector2> kInnerShape =
+	{
+		{ -2.0f,  2.5f },	// 上左（開口）
+		{ -1.9f,  0.2f },
+		{ -1.3f, -2.5f },	// 底左
+		{  1.3f, -2.5f },	// 底右
+		{  1.9f,  0.2f },
+		{  2.0f,  2.5f },	// 上右（開口）
+	};
+
 	// 目標ライン（内側領域を 0.0=底 ～ 1.0=上端 とした割合）
 	const float kTargetLineRate = 0.7f;
 	const float kTargetLineY    = kInnerBottomY + kInnerHeight * kTargetLineRate;

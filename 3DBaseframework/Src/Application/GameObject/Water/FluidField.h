@@ -52,6 +52,9 @@ private:
 	// 全セルの初期 quantity データ（行優先。row0=上、row増加=下＝重力方向）を作る
 	void BuildInitialQuantity(std::vector<Math::Vector4>& out) const;
 
+	// コップ形状のソリッドマスク（r:1=内側/0=壁）を多角形から作る
+	void BuildSolidMask(std::vector<Math::Vector4>& out) const;
+
 	// フルスクリーンパスを1回描画する（src を t0 に、ps で dst へ書き込む）
 	//  additive=true で純加算ブレンド（upsampleの圧力補正加算に使う）
 	void RenderPass(ID3D11PixelShader* ps,
@@ -168,6 +171,10 @@ private:
 
 	std::vector<DoubleBuffer>	m_intensity;					// intensityピラミッド（W×H→…→8以上）
 	std::shared_ptr<KdTexture>	m_connection = nullptr;			// 圧力勾配（4近傍への力）
+
+	// コップ形状マスク（自由多角形→グリッド。r:1=内側/0=壁）
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psMaskEnforce;	// 壁セルを0にする
+	std::shared_ptr<KdTexture>	m_solid = nullptr;				// 形状マスク（静的）
 
 	// 注水・補填
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psPour;			// 注水

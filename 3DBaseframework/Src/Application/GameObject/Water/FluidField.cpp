@@ -1,5 +1,6 @@
 ﻿#include "FluidField.h"
 #include "WaterConst.h"
+#include "../Cup/CupConst.h"	// コップ内側の多角形（形状マスク用）
 
 // ===================================================
 // 初期化：シェーダ・レンダーターゲット・初期データの生成
@@ -255,6 +256,16 @@ bool FluidField::Init()
 		}
 	}
 
+	// -------- コップ形状マスク強制PS --------
+	{
+#include "../../Shader/Fluid/FluidShader_PS_MaskEnforce.shaderInc"
+		if (FAILED(dev->CreatePixelShader(compiledBuffer, sizeof(compiledBuffer), nullptr, m_psMaskEnforce.GetAddressOf())))
+		{
+			assert(0 && "流体 マスク強制PSの作成に失敗");
+			return false;
+		}
+	}
+
 	// -------- 定数バッファ（可視化色） --------
 	{
 		cbVisualize init;
@@ -394,6 +405,21 @@ bool FluidField::Init()
 		return false;
 	}
 
+	// -------- コップ形状マスク（多角形から作る静的テクスチャ） --------
+	{
+		std::vector<Math::Vector4> maskData;
+		BuildSolidMask(maskData);
+		D3D11_SUBRESOURCE_DATA msrd = {};
+		msrd.pSysMem = maskData.data();
+		msrd.SysMemPitch = static_cast<UINT>(WaterConst::kGridWidth * sizeof(Math::Vector4));
+		m_solid = std::make_shared<KdTexture>();
+		if (!m_solid->Create(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, &msrd))
+		{
+			assert(0 && "流体 形状マスクの作成に失敗");
+			return false;
+		}
+	}
+
 	// -------- 注水・補填の定数バッファ＋初期水量 --------
 	{
 		// 吸い込み口（上部中央の矩形）
@@ -474,6 +500,11 @@ void FluidField::Step(float deltaTime, bool pouring)
 	UINT savedNumVP = 1;
 	D3D11_VIEWPORT savedVP = {};
 	rc->RSGetViewports(&savedNumVP, &savedVP);
+	// ブレンド状態も保存（流体は不透明/加算に変えるため、後続の2D描画のα合成を壊さないよう戻す）
+	ID3D11BlendState* savedBlend = nullptr;
+	float savedBlendFactor[4] = { 0, 0, 0, 0 };
+	UINT savedSampleMask = 0xFFFFFFFF;
+	rc->OMGetBlendState(&savedBlend, savedBlendFactor, &savedSampleMask);
 
 	// フルスクリーン／撒き込みクアッドが裏面カリングされないようにする
 	sm.ChangeRasterizerState(KdRasterizerState::CullNone);
@@ -501,6 +532,10 @@ void FluidField::Step(float deltaTime, bool pouring)
 		m_waterMass += WaterConst::kPourMassPerStep * static_cast<float>(m_inletCellCount);
 	}
 
+	// ※ コップ形状は「シミュレーションを矩形のまま」解き、表示側（可視化パス）で
+	//   多角形にクリップする方式にする。マスクをシムに掛けると圧力変位が壁へ水を押し出し、
+	//   それを毎フレーム削除して水が溜まらなくなるため、シムには掛けない。
+
 	// ⑤ 補填（余剰/不足の是正で水面を安定させる）
 	//  非保存的に質量を増減するため既定では無効（水が減るのを防ぐ）。
 	if (WaterConst::kEnableEqualization)
@@ -521,10 +556,14 @@ void FluidField::Step(float deltaTime, bool pouring)
 	// ⑦ 質量正規化：GPU総質量を「注いだ量」へ合わせ、ドリフトで水が減るのを防ぐ
 	NormalizeMass();
 
-	// ⑧ 現在の物理量＋泡から表示用テクスチャを生成
+	// ⑧ 現在の物理量＋泡から表示用テクスチャを生成（コップ形状マスクで内外を切る）
 	m_cbVisualize.Write();
 	sm.SetPSConstantBuffer(0, m_cbVisualize.GetAddress());
+	ID3D11ShaderResourceView* visSolid = m_solid ? m_solid->WorkSRView() : nullptr;
+	rc->PSSetShaderResources(2, 1, &visSolid);	// t2: 形状マスク
 	RenderPass2(m_psVisualize.Get(), m_quantity.current, m_foam.current, m_displayTex);
+	ID3D11ShaderResourceView* nullSolid = nullptr;
+	rc->PSSetShaderResources(2, 1, &nullSolid);
 
 	sm.UndoRasterizerState();
 
@@ -532,11 +571,13 @@ void FluidField::Step(float deltaTime, bool pouring)
 	rc->CopyResource(m_massReadback.Get(), m_quantity.current->WorkResource());
 	m_readbackValid = true;
 
-	// 保存しておいた RT・ビューポートを復元（後続描画のスケール漏れを防ぐ）
+	// 保存しておいた RT・ビューポート・ブレンドを復元（後続の2D/3D描画への漏れを防ぐ）
 	rc->OMSetRenderTargets(1, &savedRTV, savedDSV);
 	rc->RSSetViewports(1, &savedVP);
+	rc->OMSetBlendState(savedBlend, savedBlendFactor, savedSampleMask);
 	if (savedRTV) { savedRTV->Release(); }
 	if (savedDSV) { savedDSV->Release(); }
+	if (savedBlend) { savedBlend->Release(); }
 }
 
 // ===================================================
@@ -668,6 +709,9 @@ void FluidField::Release()
 	m_cbMassScale.Release();
 	m_readbackValid = false;
 
+	m_psMaskEnforce.Reset();
+	m_solid = nullptr;
+
 	m_intensity.clear();
 	m_connection = nullptr;
 
@@ -693,6 +737,45 @@ void FluidField::BuildInitialQuantity(std::vector<Math::Vector4>& out) const
 	{
 		// (x,y=運動量=0, z=質量=空気, w=体積)
 		out[i] = { 0.0f, 0.0f, WaterConst::kCellAirMass, WaterConst::kCellVolume };
+	}
+}
+
+// ===================================================
+// コップ形状マスク：各セル中心が内側多角形の中なら1、外(壁)なら0
+// ===================================================
+void FluidField::BuildSolidMask(std::vector<Math::Vector4>& out) const
+{
+	const int w = WaterConst::kGridWidth;
+	const int h = WaterConst::kGridHeight;
+	out.resize(static_cast<size_t>(w) * h);
+
+	const std::vector<Math::Vector2>& poly = CupConst::kInnerShape;
+	const size_t n = poly.size();
+
+	for (int row = 0; row < h; ++row)
+	{
+		for (int col = 0; col < w; ++col)
+		{
+			// セル中心の世界座標（row0=上、row増加=下）
+			const float wx = CupConst::kInnerLeftX + (col + 0.5f) / static_cast<float>(w) * CupConst::kInnerWidth;
+			const float wy = CupConst::kInnerTopY  - (row + 0.5f) / static_cast<float>(h) * CupConst::kInnerHeight;
+
+			// 点が多角形の内側か（レイキャスト法）
+			bool inside = false;
+			for (size_t i = 0, j = n - 1; i < n; j = i++)
+			{
+				const Math::Vector2& a = poly[i];
+				const Math::Vector2& b = poly[j];
+				if (((a.y > wy) != (b.y > wy)) &&
+					(wx < (b.x - a.x) * (wy - a.y) / (b.y - a.y) + a.x))
+				{
+					inside = !inside;
+				}
+			}
+
+			const float s = inside ? 1.0f : 0.0f;
+			out[static_cast<size_t>(row) * w + col] = { s, s, s, s };
+		}
 	}
 }
 
@@ -825,8 +908,13 @@ void FluidField::SolvePressure()
 		}
 	}
 
-	// ④ 圧力勾配 → connection
+	// ④ 圧力勾配 → connection（壁との流束は0にする＝当たり判定）
+	ID3D11DeviceContext* rc = KdDirect3D::Instance().WorkDevContext();
+	ID3D11ShaderResourceView* gradSolid = m_solid ? m_solid->WorkSRView() : nullptr;
+	rc->PSSetShaderResources(2, 1, &gradSolid);	// t2: 形状マスク
 	RenderPass2(m_psPressureGradient.Get(), m_quantity.current, m_intensity[0].current, m_connection);
+	ID3D11ShaderResourceView* nullSolid = nullptr;
+	rc->PSSetShaderResources(2, 1, &nullSolid);
 
 	// ⑤ 圧力で加速（運動量へ）
 	RenderPass2(m_psPressureAcceleration.Get(), m_quantity.current, m_connection, m_quantity.next);
@@ -902,6 +990,9 @@ void FluidField::RenderAdvection(const std::shared_ptr<KdTexture>& src, const st
 	// 入力：現在の物理量（頂点シェーダで Load する）
 	ID3D11ShaderResourceView* srv = src->WorkSRView();
 	ctx->VSSetShaderResources(0, 1, &srv);
+	// コップ形状マスクを VS の t1 に（壁セルへは移動しない＝当たり判定）
+	ID3D11ShaderResourceView* solidSrv = m_solid ? m_solid->WorkSRView() : nullptr;
+	ctx->VSSetShaderResources(1, 1, &solidSrv);
 
 	// 純加算ブレンド
 	ctx->OMSetBlendState(m_additiveBlend.Get(), nullptr, 0xFFFFFFFF);
@@ -917,6 +1008,7 @@ void FluidField::RenderAdvection(const std::shared_ptr<KdTexture>& src, const st
 	ctx->GSSetShader(nullptr, nullptr, 0);
 	ID3D11ShaderResourceView* nullSrv = nullptr;
 	ctx->VSSetShaderResources(0, 1, &nullSrv);
+	ctx->VSSetShaderResources(1, 1, &nullSrv);
 	ctx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 
 	changer.UndoRenderTarget();

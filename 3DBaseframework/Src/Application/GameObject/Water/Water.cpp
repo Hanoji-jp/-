@@ -106,5 +106,8 @@ void Water::DrawUnLit()
 	if (!m_fluid) { return; }
 
 	// コップ内側へ、流体の可視化テクスチャを板ポリゴンで表示する
+	//  マスクにより水の無い所・コップの外は透明なので、アルファ合成で背景を透かす
+	KdShaderManager::Instance().ChangeBlendState(KdBlendState::Alpha);
 	KdShaderManager::Instance().m_StandardShader.DrawPolygon(m_displayPoly, Math::Matrix::Identity, kWhiteColor);
+	KdShaderManager::Instance().UndoBlendState();
 }

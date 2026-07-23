@@ -3,10 +3,14 @@
 //  みずあそび.html の pressure-gradient-fragment を移植。
 //  4近傍への (圧力差)/(質量和) を connection として出力する。
 //   connection = (outPressure - inPressure) / max(inMass + outMass, minMass)
+//  チャネル = (左, 上, 右, 下) の順。
+//  さらに、コップ形状マスク(solid)の壁との間は流束を 0 にする（＝グラスの当たり判定）。
+//  これで圧力が水を壁の外へ押し出さなくなり、水は多角形の内側に溜まる。
 // ===================================================
 
 Texture2D<float4> g_quantity  : register(t0);
 Texture2D<float4> g_intensity : register(t1);
+Texture2D<float4> g_solid     : register(t2);	// r: 1=内側 / 0=壁
 
 static const float kMinMass = 0.001;
 
@@ -39,5 +43,15 @@ float4 main(float4 svPos : SV_Position) : SV_Target
 	float  inPressure  = it.w;
 	float4 outPressure = float4(ipx.w, ipy.w, inx.w, iny.w);
 
-	return (outPressure - inPressure) / max(inMass + outMass, kMinMass);
+	float4 conn = (outPressure - inPressure) / max(inMass + outMass, kMinMass);
+
+	// 壁との間は流束ゼロ。自セルが壁なら全チャネル0、隣が壁ならそのチャネル0。
+	float  centerSolid = g_solid.Load(int3(c, 0)).r;
+	float4 nbSolid = float4(
+		g_solid.Load(int3(pX, 0)).r,
+		g_solid.Load(int3(pY, 0)).r,
+		g_solid.Load(int3(nX, 0)).r,
+		g_solid.Load(int3(nY, 0)).r);
+
+	return conn * centerSolid * nbSolid;
 }
