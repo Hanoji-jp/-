@@ -36,8 +36,9 @@ void Water::Init()
 	// 可視化テクスチャをベースカラーとして貼る（毎フレーム中身が更新される）
 	m_displayPoly.SetMaterial(m_fluid->GetDisplayTexture());
 
-	// 空のコップから開始。注水中フラグはオフ
-	m_isPouring = false;
+	// 空のコップから開始。一発勝負の状態は未注水
+	m_pourState = PourState::Ready;
+	m_result    = UIConst::RyoResult::None;
 
 	m_drawType = eDrawTypeUnLit;
 }
@@ -45,6 +46,37 @@ void Water::Init()
 void Water::Reset()
 {
 	if (m_fluid) { m_fluid->Reset(); }
+	m_pourState = PourState::Ready;
+	m_result    = UIConst::RyoResult::None;
+}
+
+void Water::SetPouring(bool pouring)
+{
+	// 一発勝負：一度終了したら以後は受け付けない
+	if (m_pourState == PourState::Done) { return; }
+
+	if (pouring)
+	{
+		m_pourState = PourState::Pouring;
+	}
+	else if (m_pourState == PourState::Pouring)
+	{
+		// 注いでいた手を離した → 終了して判定を確定
+		m_pourState = PourState::Done;
+		JudgeResult();
+	}
+}
+
+void Water::JudgeResult()
+{
+	// この時点の水位（＝泡が全部落ち着いた後の最終液面）で判定
+	const float rate   = GetFillRate();
+	const float target = CupConst::kTargetLineRate;
+	const float tol    = UIConst::kRyoTolerance;
+
+	if (rate < target - tol)      { m_result = UIConst::RyoResult::Under; }
+	else if (rate > target + tol) { m_result = UIConst::RyoResult::Over; }
+	else                          { m_result = UIConst::RyoResult::Ryo; }
 }
 
 float Water::GetFillRate() const
@@ -60,7 +92,8 @@ void Water::PreDraw()
 	float deltaTime = Application::Instance().GetDeltaTime();
 	if (deltaTime > WaterConst::kMaxDeltaTime) { deltaTime = WaterConst::kMaxDeltaTime; }
 
-	m_fluid->Step(deltaTime, m_isPouring);
+	// 注水中フラグは「Pouring 状態のときだけ」true
+	m_fluid->Step(deltaTime, m_pourState == PourState::Pouring);
 }
 
 void Water::Update()

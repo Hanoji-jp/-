@@ -14,5 +14,9 @@ namespace UIConst
 		Over,	// 入れすぎ
 	};
 
-	// TODO: 「良！」文字の位置・色・判定の許容誤差などの定数をここに定義する
+	// 目標ラインとの許容誤差（水位0.0～1.0に対する割合）
+	//  |fillRate - 目標| がこれ以内なら「良！」
+	inline constexpr float kRyoTolerance = 0.03f;
+
+	// TODO: 「良！」文字の位置・色などの表示用定数をここに定義する
 }

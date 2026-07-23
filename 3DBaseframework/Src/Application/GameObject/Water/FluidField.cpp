@@ -203,14 +203,87 @@ bool FluidField::Init()
 		}
 	}
 
+	// -------- 炭酸：泡PS群 --------
+	{
+#include "../../Shader/Fluid/FluidShader_PS_FoamGen.shaderInc"
+		if (FAILED(dev->CreatePixelShader(compiledBuffer, sizeof(compiledBuffer), nullptr, m_psFoamGen.GetAddressOf())))
+		{
+			assert(0 && "流体 泡発生PSの作成に失敗");
+			return false;
+		}
+	}
+	{
+#include "../../Shader/Fluid/FluidShader_PS_FoamLoss.shaderInc"
+		if (FAILED(dev->CreatePixelShader(compiledBuffer, sizeof(compiledBuffer), nullptr, m_psFoamLoss.GetAddressOf())))
+		{
+			assert(0 && "流体 泡質量減算PSの作成に失敗");
+			return false;
+		}
+	}
+	{
+#include "../../Shader/Fluid/FluidShader_PS_FoamBuoyancy.shaderInc"
+		if (FAILED(dev->CreatePixelShader(compiledBuffer, sizeof(compiledBuffer), nullptr, m_psFoamBuoyancy.GetAddressOf())))
+		{
+			assert(0 && "流体 泡浮上PSの作成に失敗");
+			return false;
+		}
+	}
+	{
+#include "../../Shader/Fluid/FluidShader_PS_FoamToLiquid.shaderInc"
+		if (FAILED(dev->CreatePixelShader(compiledBuffer, sizeof(compiledBuffer), nullptr, m_psFoamToLiquid.GetAddressOf())))
+		{
+			assert(0 && "流体 泡→液PSの作成に失敗");
+			return false;
+		}
+	}
+	{
+#include "../../Shader/Fluid/FluidShader_PS_FoamDecay.shaderInc"
+		if (FAILED(dev->CreatePixelShader(compiledBuffer, sizeof(compiledBuffer), nullptr, m_psFoamDecay.GetAddressOf())))
+		{
+			assert(0 && "流体 泡減衰PSの作成に失敗");
+			return false;
+		}
+	}
+
 	// -------- 定数バッファ（可視化色） --------
 	{
 		cbVisualize init;
 		const Math::Color& w = WaterConst::kVisualizeWaterColor;
 		const Math::Color& s = WaterConst::kVisualizeSpaceColor;
+		const Math::Color& f = WaterConst::kVisualizeFoamColor;
 		init.WaterColor = { w.R(), w.G(), w.B(), w.A() };
 		init.SpaceColor = { s.R(), s.G(), s.B(), s.A() };
+		init.FoamColor  = { f.R(), f.G(), f.B(), f.A() };
+		init.FoamParams = { WaterConst::kVisualizeFoamGain, WaterConst::kVisualizeWaterLo, WaterConst::kVisualizeWaterHi, 0.0f };
 		m_cbVisualize.Create(&init);
+	}
+
+	// -------- 炭酸：泡の定数バッファ＋フィールド --------
+	{
+		cbFoam f;
+		f.GenRate     = WaterConst::kFoamGenRate;
+		f.SpeedThresh = WaterConst::kFoamSpeedThresh;
+		f.MassThresh  = WaterConst::kFoamMassThresh;
+		f.RiseRate    = WaterConst::kFoamRiseRate;
+		f.SpreadRate  = WaterConst::kFoamSpreadRate;
+		f.DecayRate   = WaterConst::kFoamDecayRate;
+		m_cbFoam.Create(&f);
+
+		// 泡フィールド（0で初期化）
+		std::vector<Math::Vector4> zero(static_cast<size_t>(WaterConst::kGridWidth) * WaterConst::kGridHeight,
+			Math::Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+		D3D11_SUBRESOURCE_DATA fsrd = {};
+		fsrd.pSysMem = zero.data();
+		fsrd.SysMemPitch = static_cast<UINT>(WaterConst::kGridWidth * sizeof(Math::Vector4));
+
+		m_foam.current = std::make_shared<KdTexture>();
+		m_foam.next    = std::make_shared<KdTexture>();
+		if (!m_foam.current->CreateRenderTarget(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, &fsrd) ||
+			!m_foam.next->CreateRenderTarget(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, nullptr))
+		{
+			assert(0 && "流体 泡フィールドの作成に失敗");
+			return false;
+		}
 	}
 
 	// -------- レンダーターゲット群 --------
@@ -328,17 +401,17 @@ bool FluidField::Init()
 		p.Velocity = WaterConst::kPourVelocity;
 		m_cbPour.Create(&p);
 
-		// 初期の 全質量／全体積 を補填の基準比とし、初期水量も求める
+		// 初期水量（質量の合計）を求める
 		std::vector<Math::Vector4> initData;
 		BuildInitialQuantity(initData);
-		float sumMass = 0.0f, sumVolume = 0.0f;
-		for (const Math::Vector4& q : initData) { sumMass += q.z; sumVolume += q.w; }
-		const float ratio = (sumVolume > 0.0f) ? sumMass / sumVolume : 0.0f;
+		float sumMass = 0.0f;
+		for (const Math::Vector4& q : initData) { sumMass += q.z; }
 
 		cbEqualization e;
 		e.SurplusRate = WaterConst::kEqualizationSurplusRate;
 		e.DeficitRate = WaterConst::kEqualizationDeficitRate;
-		e.DeficitRatio = { 0.0f, 0.0f, ratio, 1.0f };
+		// 不足セルは「水の密度」で補充（拡散で薄まった水を保ち、水量が減らない）
+		e.DeficitRatio = { 0.0f, 0.0f, WaterConst::kEqualizationRefillDensity, 1.0f };
 		m_cbEqualization.Create(&e);
 
 		m_waterMass = sumMass;	// 現在の水量（以後、注水ぶんを加算していく）
@@ -387,15 +460,26 @@ void FluidField::Step(float deltaTime, bool pouring)
 	}
 
 	// ⑤ 補填（余剰/不足の是正で水面を安定させる）
-	m_cbEqualization.Write();
-	sm.SetPSConstantBuffer(0, m_cbEqualization.GetAddress());
-	RenderPass(m_psEqualization.Get(), m_quantity.current, m_quantity.next);
-	m_quantity.Swap();
+	//  非保存的に質量を増減するため既定では無効（水が減るのを防ぐ）。
+	if (WaterConst::kEnableEqualization)
+	{
+		m_cbEqualization.Write();
+		sm.SetPSConstantBuffer(0, m_cbEqualization.GetAddress());
+		RenderPass(m_psEqualization.Get(), m_quantity.current, m_quantity.next);
+		m_quantity.Swap();
+	}
 
-	// ⑥ 現在の物理量から表示用テクスチャを生成
+	// ⑥ 炭酸：泡（発生・浮上・拡散・減衰＝液へ還元）
+	//  無効時（普通の水）は泡パスをスキップ。foamフィールドは0のまま＝泡は描かれない。
+	if (WaterConst::kEnableCarbonation)
+	{
+		SolveFoam();
+	}
+
+	// ⑦ 現在の物理量＋泡から表示用テクスチャを生成
 	m_cbVisualize.Write();
 	sm.SetPSConstantBuffer(0, m_cbVisualize.GetAddress());
-	RenderPass(m_psVisualize.Get(), m_quantity.current, m_displayTex);
+	RenderPass2(m_psVisualize.Get(), m_quantity.current, m_foam.current, m_displayTex);
 
 	sm.UndoRasterizerState();
 }
@@ -431,6 +515,10 @@ void FluidField::Reset()
 	float sumMass = 0.0f;
 	for (const Math::Vector4& q : quantityData) { sumMass += q.z; }
 	m_waterMass = sumMass;
+
+	// 泡フィールドを0クリア
+	std::vector<Math::Vector4> zero(quantityData.size(), Math::Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+	ctx->UpdateSubresource(m_foam.current->WorkResource(), 0, nullptr, zero.data(), rowPitch, 0);
 }
 
 // ===================================================
@@ -466,6 +554,15 @@ void FluidField::Release()
 	m_psEqualization.Reset();
 	m_cbPour.Release();
 	m_cbEqualization.Release();
+
+	m_psFoamGen.Reset();
+	m_psFoamLoss.Reset();
+	m_psFoamBuoyancy.Reset();
+	m_psFoamToLiquid.Reset();
+	m_psFoamDecay.Reset();
+	m_cbFoam.Release();
+	m_foam.current = nullptr;
+	m_foam.next = nullptr;
 
 	m_intensity.clear();
 	m_connection = nullptr;
@@ -634,6 +731,34 @@ void FluidField::SolvePressure()
 	// ⑥ 質量再配置（非圧縮化）
 	RenderPass2(m_psPressureDisplacement.Get(), m_quantity.current, m_connection, m_quantity.next);
 	m_quantity.Swap();
+}
+
+// ===================================================
+// 炭酸：泡を1回進める
+//  発生（液→泡）→ 浮上＋拡散 → 減衰（泡→液で水位上昇）
+// ===================================================
+void FluidField::SolveFoam()
+{
+	if (!m_psFoamGen) { return; }
+
+	m_cbFoam.Write();
+	KdShaderManager::Instance().SetPSConstantBuffer(0, m_cbFoam.GetAddress());
+
+	// ① 発生：乱流から泡を作り（foam += gen）、同量を液の質量から引く（z -= gen）
+	RenderPass2(m_psFoamGen.Get(), m_quantity.current, m_foam.current, m_foam.next);
+	m_foam.Swap();
+	RenderPass(m_psFoamLoss.Get(), m_quantity.current, m_quantity.next);
+	m_quantity.Swap();
+
+	// ② 浮上＋水平拡散（液面に泡の頭を作る）
+	RenderPass2(m_psFoamBuoyancy.Get(), m_foam.current, m_quantity.current, m_foam.next);
+	m_foam.Swap();
+
+	// ③ 減衰ぶんを液へ戻し（水位上昇）、泡を減衰させる
+	RenderPass2(m_psFoamToLiquid.Get(), m_quantity.current, m_foam.current, m_quantity.next);
+	m_quantity.Swap();
+	RenderPass(m_psFoamDecay.Get(), m_foam.current, m_foam.next);
+	m_foam.Swap();
 }
 
 // ===================================================
