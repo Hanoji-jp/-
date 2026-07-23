@@ -25,20 +25,26 @@ void GameScene::Event()
 		const bool isPouring = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
 		spWater->SetPouring(isPouring);
 
-		// Rキーで水位をリセット（ゲームオーバー表示も消す）
+		// Rキーで水位をリセット（結果演出も消す）
 		if (GetAsyncKeyState('R') & 0x8000)
 		{
 			spWater->Reset();
 			if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Deactivate(); }
+			if (auto spRyou = m_wpRyou.lock())         { spRyou->Deactivate(); }
 		}
 
-		// 注ぎ終わり（一発勝負確定）でラインに合わなかったらゲームオーバー
+		// 注ぎ終わり（一発勝負確定）で結果に応じて演出を出す
 		if (spWater->IsPourFinished())
 		{
 			const UIConst::RyoResult result = spWater->GetResult();
-			const bool missed = (result == UIConst::RyoResult::Under || result == UIConst::RyoResult::Over);
-			if (missed)
+			if (result == UIConst::RyoResult::Ryo)
 			{
+				// ぴったり（良）→ 良演出
+				if (auto spRyou = m_wpRyou.lock()) { spRyou->Activate(); }
+			}
+			else if (result == UIConst::RyoResult::Under || result == UIConst::RyoResult::Over)
+			{
+				// ラインに合わなかった → ゲームオーバー
 				if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Activate(); }
 			}
 		}
@@ -84,4 +90,6 @@ void GameScene::Init()
 	_spRyou = std::make_shared<RyouEffect>();
 	m_objList.push_back(_spRyou);
 	_spRyou->Init();
+	m_wpRyou = _spRyou;
 }
+

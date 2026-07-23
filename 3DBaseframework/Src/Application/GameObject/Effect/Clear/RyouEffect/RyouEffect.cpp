@@ -30,8 +30,17 @@ void RyouEffect::Init()
 
 }
 
+// 成功（良）で呼ぶ：演出を最初から再生する
+void RyouEffect::Activate()
+{
+	m_active = true;
+	m_scale = 0.3f;	// 拡縮を初期値から
+}
+
 void RyouEffect::Update()
 {
+	if (!m_active) { return; }	// 成功時だけ動く
+
 	// 拡縮反復
 	ScalingIteration(2.0f,0.3f,0.8f);
 
@@ -44,6 +53,8 @@ void RyouEffect::Update()
 
 void RyouEffect::DrawSprite()
 {
+	if (!m_active) { return; }	// 成功時だけ表示
+
 	KdShaderManager::Instance().m_spriteShader.SetMatrix(m_mWorld);
 	KdShaderManager::Instance().m_spriteShader.DrawTex(m_spTex, 0.0f, 0.0f);
 	KdDebugGUI::Instance().AddLog("RyouEffect DrawSprite");
