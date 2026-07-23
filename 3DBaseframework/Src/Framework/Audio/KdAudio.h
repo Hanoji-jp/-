@@ -73,6 +73,9 @@ private:
 	// サウント管理マップ
 	std::unordered_map< std::string, std::shared_ptr<KdSoundEffect>> m_soundMap;
 
+	// Media Foundation を初期化済みか（mp3等の圧縮音源デコード用）
+	bool m_mfInitialized = false;
+
 	// シングルトンパターン
 public:
 	static KdAudioManager& Instance()

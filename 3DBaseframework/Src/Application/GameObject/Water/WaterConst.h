@@ -56,8 +56,8 @@ namespace WaterConst
 
 	// 水の塗り分け閾値：質量(z)がこの範囲で 空色→水色 へ切り替える。
 	//  Lo を上げ Hi を下げるほど、薄いセルも水として塗られ「気泡（粒々）」が減る。
-	inline constexpr float kVisualizeWaterLo = 0.04f;	// これ以下は空気
-	inline constexpr float kVisualizeWaterHi = 0.22f;	// これ以上は完全に水
+	inline constexpr float kVisualizeWaterLo = 0.10f;	// これ以下は空気（上げると水面上の薄い飛沫の粒々が消える）
+	inline constexpr float kVisualizeWaterHi = 0.30f;	// これ以上は完全に水
 
 	// ===============================================
 	// Phase2：移流＋重力
@@ -77,8 +77,8 @@ namespace WaterConst
 	// Phase3：圧力（マルチグリッド解法）
 	// ===============================================
 
-	// 各レベルでの圧力ヤコビ反復回数
-	inline constexpr int kJacobiIterations = 5;
+	// 各レベルでの圧力ヤコビ反復回数（多いほど水面が平らに落ち着く＝左右の盛り上がりが減る）
+	inline constexpr int kJacobiIterations = 8;
 
 	// intensityピラミッドを作る最小サイズ（幅・高さがこれ未満になったら止める）
 	inline constexpr int kMinPyramidSize = 8;
@@ -94,7 +94,7 @@ namespace WaterConst
 
 	// 1ステップで注ぐ量・下向き速度
 	inline constexpr float kPourMassPerStep = 0.5f;		// セルあたりに加える質量
-	inline constexpr float kPourVelocity    = 0.35f;	// 加える下向き速度（小さいほど飛沫が減る）
+	inline constexpr float kPourVelocity    = 0.18f;	// 加える下向き速度（小さいほど飛沫が減る＝壁を伝う盛り上がりが減る）
 
 	// equalization（余剰を削り、不足を補充密度で補う。非圧縮＋拡散補正）
 	inline constexpr bool  kEnableEqualization      = true;
