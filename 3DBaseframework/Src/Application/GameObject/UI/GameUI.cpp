@@ -8,10 +8,14 @@ void GameUI::Init()
 
 void GameUI::Update()
 {
-	// TODO: 水位と目標ラインを比較して判定結果を更新
+	// 注水終了後、Water が確定した判定結果を受け取る
+	if (auto spWater = m_wpWater.lock())
+	{
+		m_result = spWater->GetResult();
+	}
 }
 
 void GameUI::DrawSprite()
 {
-	// TODO: 判定結果に応じて「良！」などの演出を2D描画
+	// TODO: m_result に応じて「良！」などの演出を2D描画（フォント素材は今後）
 }
