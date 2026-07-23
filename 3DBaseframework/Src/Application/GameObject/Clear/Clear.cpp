@@ -1,11 +1,24 @@
 ﻿#include "Clear.h"
+#include"../../Scene/SceneManager.h"
 
 void Clear::Init()
-{
-	m_Tex.Load("Asset/Textures/Clear(仮).png");
-}
+{}
 
-void Clear::DrawSprite()
+void Clear::Update()
 {
-	KdShaderManager::Instance().m_spriteShader.DrawTex(&m_Tex, 0, 0, nullptr);
+	m_Alpha += m_AlphaAdd;
+
+	KdShaderManager::Instance().WorkAmbientController().SetFogEnable(true, false);
+	KdShaderManager::Instance().WorkAmbientController().SetDistanceFog({ 0,0,0 }, m_Alpha);
+
+	if (m_Alpha >= 1)
+	{
+
+		SceneManager::Instance().SetNextScene
+		(
+			SceneManager::SceneType::Title
+		);
+
+	}
+
 }
