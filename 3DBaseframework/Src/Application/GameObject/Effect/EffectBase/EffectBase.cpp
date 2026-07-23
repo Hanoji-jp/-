@@ -62,31 +62,19 @@ void EffectBase::ScalingIteration(float _scaleMax, float _scaleMin, float _speed
 
 void EffectBase::PlaceChara()
 {
-	static int _time = 30;
-	if (_time > 0)
-	{
-		_time--;
-	}
+	// ポップイン演出：起動時に大きく出て、目標スケールへ縮んで止まる。
+	//  ※static を使わずメンバ m_placeTime で管理（インスタンスごと・Activateで再生し直せる）。
+	const float kPop    = 2.2f;		// 出た瞬間の大きさ
+	const float kTarget = 1.4f;		// 落ち着く大きさ（この大きさで「良」を表示）
 
-	if (_time == 30)
+	if (m_placeTime > 0)
 	{
-		m_scale = 5.0f;
-	}
-	else if (_time < 30 && _time >= 25)
-	{
-		m_scale += 0.02f;
-	}
-	else if (_time < 25 && _time >= 5)
-	{
-		m_scale -= 0.05f;
-	}
-	else if (_time < 5 && _time > 0)
-	{
-		m_scale -= 0.01f;
+		const float t = static_cast<float>(m_placeTime) / static_cast<float>(kPlaceDuration);	// 1→0
+		m_scale = kTarget + (kPop - kTarget) * t;	// pop→target へイーズ
+		--m_placeTime;
 	}
 	else
 	{
-		//m_scale = 1.0f;
+		m_scale = kTarget;	// 目標サイズで保持
 	}
-
 }

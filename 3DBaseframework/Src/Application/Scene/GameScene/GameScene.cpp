@@ -8,6 +8,7 @@
 #include "../../GameObject/UI/GameUI.h"
 #include"../../GameObject/GameOver/GameOver.h"
 #include"../../GameObject/GameStart/GameStart.h"
+#include"../../GameObject/Tension/Tension.h"
 #include"../../GameObject/Effect/Clear/RyouEffect/RyouEffect.h"
 #include "../../GameObject/Desk/Desk.h"
 #include "../../GameObject/DrinkBar/DrinkBar.h"
@@ -43,8 +44,8 @@ void GameScene::Event()
 		const bool isPouring = spaceDown && m_pourArmed && introDone;
 		spWater->SetPouring(isPouring);
 
-		// Rキーで水位をリセット（結果演出も消す）
-		if (GetAsyncKeyState('R') & 0x8000)
+		// Rキーで水位をリセット（結果演出も消す）。開始演出（3・2・1・start）中は操作無効。
+		if (introDone && (GetAsyncKeyState('R') & 0x8000))
 		{
 			spWater->Reset();
 			if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Deactivate(); }
@@ -86,6 +87,13 @@ void GameScene::Init()
 	spWater->Init();
 	AddObject(spWater);
 	m_wpWater = spWater;
+
+	// 緊張演出（心臓音＋コップへズーム＋上下の黒帯を縮める）。水位が目標へ近づくほど強くなる。
+	std::shared_ptr<Tension> spTension = std::make_shared<Tension>();
+	spTension->Init();
+	spTension->SetCamera(spCamera);
+	spTension->SetWater(spWater);
+	AddObject(spTension);
 
 	// コップ（枠・目標ライン）：水より後に描いて線を上に出すaddObject(spWater);
 	std::shared_ptr<Cup> spCup = std::make_shared<Cup>();
@@ -147,4 +155,7 @@ void GameScene::Init()
 	spGameStart->Init();
 	AddObject(spGameStart);
 	m_wpGameStart = spGameStart;
+
+	// 開始演出が終わったら心臓音を鳴らすため、Tension に開始演出を渡す
+	spTension->SetGameStart(spGameStart);
 }
