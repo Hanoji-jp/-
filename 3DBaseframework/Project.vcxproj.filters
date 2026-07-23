@@ -88,6 +88,18 @@
     <Filter Include="Src\Application\GameObject\Camera\FPSCamera">
       <UniqueIdentifier>{cd662ee1-c913-4e31-addc-42ef89e2668c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Effect">
+      <UniqueIdentifier>{804b8ccc-bda3-4722-b68a-93ac37a90496}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Effect\EffectBase">
+      <UniqueIdentifier>{e5fb7a9e-0506-4356-b479-b657d17bdc38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Effect\Clear">
+      <UniqueIdentifier>{82329677-4358-445f-861e-0cfb69451013}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Effect\Clear\RyouEffect">
+      <UniqueIdentifier>{e69c5c8f-efa9-46db-aec2-09be88e23d51}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -273,6 +285,12 @@
     <ClInclude Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.h">
       <Filter>Src\Application\GameObject\Camera\FPSCamera</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.h">
+      <Filter>Src\Application\GameObject\Effect\Clear\RyouEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Effect\EffectBase\EffectBase.h">
+      <Filter>Src\Application\GameObject\Effect\EffectBase</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -427,6 +445,12 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.cpp">
       <Filter>Src\Application\GameObject\Camera\FPSCamera</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.cpp">
+      <Filter>Src\Application\GameObject\Effect\Clear\RyouEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Effect\EffectBase\EffectBase.cpp">
+      <Filter>Src\Application\GameObject\Effect\EffectBase</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
