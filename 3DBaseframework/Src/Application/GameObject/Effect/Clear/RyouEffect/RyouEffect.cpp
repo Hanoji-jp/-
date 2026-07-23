@@ -31,10 +31,15 @@ void RyouEffect::Init()
 }
 
 // 成功（良）で呼ぶ：演出を最初から再生する
+//  ※GameScene は IsPourFinished()＝Done の間これを毎フレーム呼ぶため、
+//    既に表示中なら何もしない。そうしないと毎フレーム拡縮がリセットされ止まる。
 void RyouEffect::Activate()
 {
+	if (m_active) { return; }	// 既に表示中なら再スタートしない
+
 	m_active = true;
-	m_scale = 0.3f;	// 拡縮を初期値から
+	m_scale = 0.3f;		// 拡縮を初期値から
+	m_scaleUp = true;	// 拡大方向から始める
 }
 
 void RyouEffect::Update()
