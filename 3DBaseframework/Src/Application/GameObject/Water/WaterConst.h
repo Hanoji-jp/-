@@ -48,9 +48,16 @@ namespace WaterConst
 	inline constexpr float kCellAirMass   = 0.001f;	// 水の無いセルの質量（完全な0は避ける）
 	inline constexpr float kCellVolume    = 1.0f;	// セルの体積（全セル共通）
 
-	// 可視化パス（Phase1）の色：空色⇔水色を質量で補間して表示する
-	inline const Math::Color kVisualizeSpaceColor = { 0.87f, 0.93f, 0.98f, 1.0f };
-	inline const Math::Color kVisualizeWaterColor = { 0.20f, 0.55f, 0.90f, 1.0f };
+	// 可視化パスの色：空色⇔水色を質量で補間、その上に泡色を重ねる
+	inline const Math::Color kVisualizeSpaceColor = { 0.87f, 0.93f, 0.98f, 1.0f };	// 空き（淡い水色）
+	inline const Math::Color kVisualizeWaterColor = { 0.20f, 0.55f, 0.90f, 1.0f };	// 水（青）
+	inline const Math::Color kVisualizeFoamColor  = { 0.97f, 0.99f, 1.00f, 1.0f };	// 泡（白）
+	inline constexpr float   kVisualizeFoamGain   = 2.5f;	// 泡の見え方（泡量→不透明度）
+
+	// 水の塗り分け閾値：質量(z)がこの範囲で 空色→水色 へ切り替える。
+	//  Lo を上げ Hi を下げるほど、薄いセルも水として塗られ「気泡（粒々）」が減る。
+	inline constexpr float kVisualizeWaterLo = 0.04f;	// これ以下は空気
+	inline constexpr float kVisualizeWaterHi = 0.22f;	// これ以上は完全に水
 
 	// ===============================================
 	// Phase2：移流＋重力
@@ -86,10 +93,30 @@ namespace WaterConst
 	inline constexpr int kPourRows     = 3;	// 縦方向の厚み（row数）
 
 	// 1ステップで注ぐ量・下向き速度
-	inline constexpr float kPourMassPerStep = 0.5f;	// セルあたりに加える質量
-	inline constexpr float kPourVelocity    = 0.6f;	// 加える下向き速度
+	inline constexpr float kPourMassPerStep = 0.5f;		// セルあたりに加える質量
+	inline constexpr float kPourVelocity    = 0.35f;	// 加える下向き速度（小さいほど飛沫が減る）
 
-	// equalization（余剰を削り不足を補う率）
+	// equalization（余剰を削り、不足を補充密度で補う。非圧縮＋拡散補正）
+	inline constexpr bool  kEnableEqualization      = true;
 	inline constexpr float kEqualizationSurplusRate = 0.01f;
 	inline constexpr float kEqualizationDeficitRate = 0.01f;
+	// 不足セルを補う密度。1.0=水の密度で補充→拡散で薄まった水を濃く保ち、水量が減らない。
+	inline constexpr float kEqualizationRefillDensity = 1.0f;
+
+	// ===============================================
+	// 炭酸水：泡（foam）
+	//  注水の乱流から泡が発生し、液の質量を預かって浮上→液面に溜まり、
+	//  減衰して液へ戻る（＝泡が消えると水位が上がる）。総質量は保存。
+	//  ※ kEnableCarbonation=false で泡パスをスキップし「普通の水」になる。
+	// ===============================================
+
+	// 炭酸（泡）を有効にするか。false で普通の水。
+	inline constexpr bool kEnableCarbonation = false;
+
+	inline constexpr float kFoamGenRate      = 0.04f;	// 乱流1あたり 液→泡へ移す量
+	inline constexpr float kFoamSpeedThresh  = 0.35f;	// これ以上の速さで泡が立つ
+	inline constexpr float kFoamMassThresh   = 0.30f;	// 液とみなす最小質量（浮上・液面判定に使う）
+	inline constexpr float kFoamRiseRate     = 0.60f;	// 浮上の速さ（1ステップの移動割合）
+	inline constexpr float kFoamSpreadRate   = 0.12f;	// 泡の水平拡散（頭を平らに）
+	inline constexpr float kFoamDecayRate    = 0.96f;	// 1ステップで残る泡の割合（残り=液へ戻る）
 }

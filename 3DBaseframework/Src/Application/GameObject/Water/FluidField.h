@@ -68,11 +68,28 @@ private:
 	// 圧力解法（マルチグリッドV-cycle＋圧力の加速・変位）を1回実行する
 	void SolvePressure();
 
+	// 泡（炭酸）を1回進める（発生・浮上・拡散・減衰＝液へ還元）
+	void SolveFoam();
+
 	// 可視化パスの色定数バッファ
 	struct cbVisualize
 	{
 		Math::Vector4 WaterColor;	// 水の色
 		Math::Vector4 SpaceColor;	// 空(水なし)の色
+		Math::Vector4 FoamColor;	// 泡の色
+		Math::Vector4 FoamParams;	// x=泡の見え方ゲイン
+	};
+
+	// 泡（炭酸）パスの定数バッファ
+	struct cbFoam
+	{
+		float GenRate = 0.0f;		// 乱流→泡 の量
+		float SpeedThresh = 0.0f;	// 泡が立つ速さのしきい
+		float MassThresh = 0.0f;	// 液とみなす最小質量
+		float RiseRate = 0.0f;		// 浮上の速さ
+		float SpreadRate = 0.0f;	// 水平拡散
+		float DecayRate = 0.0f;		// 残る割合（残り=液へ戻る）
+		Math::Vector2 Pad;
 	};
 
 	// 移流パスの定数バッファ
@@ -150,6 +167,15 @@ private:
 
 	int		m_inletCellCount = 0;	// 吸い込み口のセル数（注水量の積算に使う）
 	float	m_waterMass = 0.0f;		// 現在の水量（質量の合計。CPUで積算）
+
+	// 炭酸：泡
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psFoamGen;		// 泡の発生
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psFoamLoss;		// 発生ぶんの液質量減算
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psFoamBuoyancy;	// 浮上＋拡散
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psFoamToLiquid;	// 泡→液へ戻す
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psFoamDecay;		// 泡の減衰
+	KdConstantBuffer<cbFoam>	m_cbFoam;							// 泡パラメータ
+	DoubleBuffer				m_foam;								// 泡フィールド（.r=泡量）
 
 	KdConstantBuffer<cbVisualize>	m_cbVisualize;				// 可視化色
 	KdConstantBuffer<cbAdvection>	m_cbAdvection;				// 重力・グリッドサイズ
