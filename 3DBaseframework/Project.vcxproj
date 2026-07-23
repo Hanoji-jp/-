@@ -279,6 +279,7 @@
     <ClInclude Include="Src\Application\GameObject\Clear\Clear.h" />
     <ClInclude Include="Src\Application\GameObject\Cup\Cup.h" />
     <ClInclude Include="Src\Application\GameObject\Cup\CupConst.h" />
+    <ClInclude Include="Src\Application\GameObject\Desk\Desk.h" />
     <ClInclude Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.h" />
     <ClInclude Include="Src\Application\GameObject\Effect\EffectBase\EffectBase.h" />
     <ClInclude Include="Src\Application\GameObject\GameOver\GameOver.h" />
@@ -345,6 +346,7 @@
     <ClCompile Include="Src\Application\GameObject\Camera\TPSCamera\TPSCamera.cpp" />
     <ClCompile Include="Src\Application\GameObject\Clear\Clear.cpp" />
     <ClCompile Include="Src\Application\GameObject\Cup\Cup.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Desk\Desk.cpp" />
     <ClCompile Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.cpp" />
     <ClCompile Include="Src\Application\GameObject\Effect\EffectBase\EffectBase.cpp" />
     <ClCompile Include="Src\Application\GameObject\GameOver\GameOver.cpp" />

@@ -112,6 +112,9 @@
     <Filter Include="Src\Application\GameObject\Effect\EffectBase">
       <UniqueIdentifier>{048c414f-9a42-4b7b-ad55-b6553167530b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Desk">
+      <UniqueIdentifier>{e2988cd9-f434-471f-bf15-af5c91c9ccba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -328,6 +331,9 @@
     <ClInclude Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.h">
       <Filter>Src\Application\GameObject\Effect\Clear</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Desk\Desk.h">
+      <Filter>Src\Application\GameObject\Desk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -504,6 +510,9 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.cpp">
       <Filter>Src\Application\GameObject\Effect\Clear</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Desk\Desk.cpp">
+      <Filter>Src\Application\GameObject\Desk</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
