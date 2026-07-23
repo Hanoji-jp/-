@@ -6,6 +6,7 @@
 #include "../../GameObject/Cup/CupConst.h"
 #include "../../GameObject/Water/Water.h"
 #include "../../GameObject/UI/GameUI.h"
+#include "../../GameObject/Desk/Desk.h"
 
 void GameScene::Event()
 {
@@ -57,4 +58,9 @@ void GameScene::Init()
 	spGameUI->Init();
 	spGameUI->SetTargetWater(spWater);
 	AddObject(spGameUI);
+
+	// 机（コップの土台）
+	std::shared_ptr<Desk> spDesk = std::make_shared<Desk>();
+	spDesk->Init();
+	AddObject(spDesk);
 }

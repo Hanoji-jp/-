@@ -279,6 +279,7 @@
     <ClInclude Include="Src\Application\GameObject\Clear\Clear.h" />
     <ClInclude Include="Src\Application\GameObject\Cup\Cup.h" />
     <ClInclude Include="Src\Application\GameObject\Cup\CupConst.h" />
+    <ClInclude Include="Src\Application\GameObject\Desk\Desk.h" />
     <ClInclude Include="Src\Application\GameObject\GameOver\GameOver.h" />
     <ClInclude Include="Src\Application\GameObject\UI\GameUI.h" />
     <ClInclude Include="Src\Application\GameObject\UI\UIConst.h" />
@@ -343,6 +344,7 @@
     <ClCompile Include="Src\Application\GameObject\Camera\TPSCamera\TPSCamera.cpp" />
     <ClCompile Include="Src\Application\GameObject\Clear\Clear.cpp" />
     <ClCompile Include="Src\Application\GameObject\Cup\Cup.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Desk\Desk.cpp" />
     <ClCompile Include="Src\Application\GameObject\GameOver\GameOver.cpp" />
     <ClCompile Include="Src\Application\GameObject\UI\GameUI.cpp" />
     <ClCompile Include="Src\Application\GameObject\Water\FluidField.cpp" />

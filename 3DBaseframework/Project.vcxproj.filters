@@ -103,6 +103,9 @@
     <Filter Include="Src\Application\GameObject\Clear">
       <UniqueIdentifier>{270d0fe5-06bd-435b-9644-9a8b22080544}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Desk">
+      <UniqueIdentifier>{ff77d4c7-5b8b-4bbe-bc44-024fdc8342a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -312,6 +315,10 @@
     <ClInclude Include="Src\Application\GameObject\Water\WaterConst.h">
       <Filter>Src\Application\GameObject\Water</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Water\FluidField.h" />
+    <ClInclude Include="Src\Application\GameObject\Desk\Desk.h">
+      <Filter>Src\Application\GameObject\Desk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -482,6 +489,10 @@
     <ClCompile Include="Src\Application\GameObject\Water\Water.cpp">
       <Filter>Src\Application\GameObject\Water</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Water\FluidField.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Desk\Desk.cpp">
+      <Filter>Src\Application\GameObject\Desk</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Framework\Shader\inc_KdCommon.hlsli">
@@ -534,5 +545,26 @@
     <FxCompile Include="Src\Framework\Shader\StandardShader\KdStandardShader_VS_UnLit.hlsl">
       <Filter>Src\Framework\Shader\StandardShader</Filter>
     </FxCompile>
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_VS_FullScreen.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_Copy.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_Visualize.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_Surface.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_VS_Advection.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_GS_Advection.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_Advection.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_Compression.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_Downsample.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_Upsample.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_Solution.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_PressureGradient.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_PressureAcceleration.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_PressureDisplacement.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_Pour.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_Equalization.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_FoamGen.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_FoamLoss.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_FoamBuoyancy.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_FoamToLiquid.hlsl" />
+    <FxCompile Include="Src\Application\Shader\Fluid\FluidShader_PS_FoamDecay.hlsl" />
   </ItemGroup>
 </Project>
