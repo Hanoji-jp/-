@@ -115,6 +115,12 @@
     <Filter Include="Src\Application\GameObject\Desk">
       <UniqueIdentifier>{e2988cd9-f434-471f-bf15-af5c91c9ccba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Stand Light">
+      <UniqueIdentifier>{65b1424f-99ea-4407-8374-fba20774218e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\wall">
+      <UniqueIdentifier>{9c3df9c0-d198-4ab7-ae6d-59e13ca678ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -334,6 +340,12 @@
     <ClInclude Include="Src\Application\GameObject\Desk\Desk.h">
       <Filter>Src\Application\GameObject\Desk</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\StandLight\StandLight.h">
+      <Filter>Src\Application\GameObject\Stand Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Wall\Wall.h">
+      <Filter>Src\Application\GameObject\wall</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -513,6 +525,12 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Desk\Desk.cpp">
       <Filter>Src\Application\GameObject\Desk</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\StandLight\StandLight.cpp">
+      <Filter>Src\Application\GameObject\Stand Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Wall\Wall.cpp">
+      <Filter>Src\Application\GameObject\wall</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

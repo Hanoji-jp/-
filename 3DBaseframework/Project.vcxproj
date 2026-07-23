@@ -283,8 +283,10 @@
     <ClInclude Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.h" />
     <ClInclude Include="Src\Application\GameObject\Effect\EffectBase\EffectBase.h" />
     <ClInclude Include="Src\Application\GameObject\GameOver\GameOver.h" />
+    <ClInclude Include="Src\Application\GameObject\StandLight\StandLight.h" />
     <ClInclude Include="Src\Application\GameObject\UI\GameUI.h" />
     <ClInclude Include="Src\Application\GameObject\UI\UIConst.h" />
+    <ClInclude Include="Src\Application\GameObject\Wall\Wall.h" />
     <ClInclude Include="Src\Application\GameObject\Water\FluidField.h" />
     <ClInclude Include="Src\Application\GameObject\Water\Water.h" />
     <ClInclude Include="Src\Application\GameObject\Water\WaterConst.h" />
@@ -350,7 +352,9 @@
     <ClCompile Include="Src\Application\GameObject\Effect\Clear\RyouEffect\RyouEffect.cpp" />
     <ClCompile Include="Src\Application\GameObject\Effect\EffectBase\EffectBase.cpp" />
     <ClCompile Include="Src\Application\GameObject\GameOver\GameOver.cpp" />
+    <ClCompile Include="Src\Application\GameObject\StandLight\StandLight.cpp" />
     <ClCompile Include="Src\Application\GameObject\UI\GameUI.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Wall\Wall.cpp" />
     <ClCompile Include="Src\Application\GameObject\Water\FluidField.cpp" />
     <ClCompile Include="Src\Application\GameObject\Water\Water.cpp" />
     <ClCompile Include="Src\Application\main.cpp" />
