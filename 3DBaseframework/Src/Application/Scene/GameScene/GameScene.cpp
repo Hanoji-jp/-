@@ -7,6 +7,7 @@
 #include "../../GameObject/Water/Water.h"
 #include "../../GameObject/UI/GameUI.h"
 #include"../../GameObject/GameOver/GameOver.h"
+#include"../../GameObject/Effect/Clear/RyouEffect/RyouEffect.h"
 void GameScene::Event()
 {
 	// タイトルへ戻る
@@ -74,4 +75,13 @@ void GameScene::Init()
 	gameover->Init();
 	m_objList.push_back(gameover);
 	m_wpGameOver = gameover;
+	//====================
+		// オブジェクト
+		//====================
+		//----- エフェクト -----
+		// 良
+	std::shared_ptr<RyouEffect> _spRyou;
+	_spRyou = std::make_shared<RyouEffect>();
+	m_objList.push_back(_spRyou);
+	_spRyou->Init();
 }

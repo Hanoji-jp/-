@@ -46,7 +46,7 @@ void RyouEffect::DrawSprite()
 {
 	KdShaderManager::Instance().m_spriteShader.SetMatrix(m_mWorld);
 	KdShaderManager::Instance().m_spriteShader.DrawTex(m_spTex, 0.0f, 0.0f);
-
+	KdDebugGUI::Instance().AddLog("RyouEffect DrawSprite");
 	// 行列をリセット
 	KdShaderManager::Instance().m_spriteShader.SetMatrix(Math::Matrix::Identity);
 }

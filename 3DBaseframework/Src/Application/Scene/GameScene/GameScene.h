@@ -17,7 +17,7 @@ private:
 
 	void Event() override;
 	void Init()  override;
-	void DrawSprite() override {}
+	void DrawSprite() override { BaseScene::DrawSprite(); }
 
 	// 注水を操作する対象の水
 	std::weak_ptr<Water> m_wpWater;
