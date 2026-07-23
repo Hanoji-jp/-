@@ -291,6 +291,7 @@
     <ClInclude Include="Src\Application\GameObject\Water\FluidField.h" />
     <ClInclude Include="Src\Application\GameObject\Water\Water.h" />
     <ClInclude Include="Src\Application\GameObject\Water\WaterConst.h" />
+    <ClInclude Include="Src\Application\GameObject\Window\Window.h" />
     <ClInclude Include="Src\Application\main.h" />
     <ClInclude Include="Src\Application\Scene\BaseScene\BaseScene.h" />
     <ClInclude Include="Src\Application\Scene\GameScene\GameScene.h" />
@@ -359,6 +360,7 @@
     <ClCompile Include="Src\Application\GameObject\Wall\Wall.cpp" />
     <ClCompile Include="Src\Application\GameObject\Water\FluidField.cpp" />
     <ClCompile Include="Src\Application\GameObject\Water\Water.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Window\Window.cpp" />
     <ClCompile Include="Src\Application\main.cpp" />
     <ClCompile Include="Src\Application\Scene\BaseScene\BaseScene.cpp" />
     <ClCompile Include="Src\Application\Scene\GameScene\GameScene.cpp" />

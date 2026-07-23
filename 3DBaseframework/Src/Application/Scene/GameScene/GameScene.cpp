@@ -11,6 +11,7 @@
 #include "../../GameObject/Desk/Desk.h"
 #include "../../GameObject/StandLight/StandLight.h"
 #include "../../GameObject/Wall/Wall.h"
+#include "../../GameObject/Window/Window.h"
 
 void GameScene::Event()
 {
@@ -113,4 +114,9 @@ void GameScene::Init()
 	std::shared_ptr<Wall> spWall = std::make_shared<Wall>();
 	spWall->Init();
 	AddObject(spWall);
+
+	// 窓（インテリア）
+	std::shared_ptr<Window> spWindow = std::make_shared<Window>();
+	spWindow->Init();
+	AddObject(spWindow);
 }
