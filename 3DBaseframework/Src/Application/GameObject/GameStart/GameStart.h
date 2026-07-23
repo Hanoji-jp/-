@@ -33,11 +33,13 @@ private:
 	// フェーズを切り替え、そのフェーズの音声を鳴らす
 	void EnterPhase(Phase next);
 
-	Phase m_phase = Phase::Instruction;
+	Phase m_phase = Phase::Count3;
 	int   m_frame = 0;	// 現フェーズ内の経過フレーム
 
-	// 表示画像
-	KdTexture m_darkTex;	// 暗幕
-	KdTexture m_instrTex;	// 「水をドンピシャで入れろ」
-	KdTexture m_goTex;		// 「始めっ」
+	// 表示画像（各フェーズで全画面表示）
+	KdTexture m_darkTex;		// 暗幕
+	KdTexture m_tex3;		// 「3」
+	KdTexture m_tex2;		// 「2」
+	KdTexture m_tex1;		// 「1」
+	KdTexture m_startTex;	// start（水をドンピシャで入れろ）
 };

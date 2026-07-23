@@ -17,20 +17,22 @@ namespace
 void GameStart::Init()
 {
 	m_darkTex.Load(GameStartConst::kDarkImage);
-	m_instrTex.Load(GameStartConst::kInstrImage);
-	m_goTex.Load(GameStartConst::kGoImage);
+	m_tex3.Load(GameStartConst::kCount3Image);
+	m_tex2.Load(GameStartConst::kCount2Image);
+	m_tex1.Load(GameStartConst::kCount1Image);
+	m_startTex.Load(GameStartConst::kStartImage);
 
-	// 最初のフェーズ（水をドンピシャで入れろ）から開始
-	m_phase = Phase::Instruction;
+	// 3 から開始（3→2→1→start の順）
+	m_phase = Phase::Count3;
 	m_frame = 0;
-	PlayIfSet(GameStartConst::kInstrAudio);
+	PlayIfSet(GameStartConst::kCount3Audio);
 }
 
 void GameStart::Restart()
 {
-	m_phase = Phase::Instruction;
+	m_phase = Phase::Count3;
 	m_frame = 0;
-	PlayIfSet(GameStartConst::kInstrAudio);
+	PlayIfSet(GameStartConst::kCount3Audio);
 }
 
 // フェーズ切替＝そのフェーズの音声を頭から鳴らす
@@ -41,10 +43,9 @@ void GameStart::EnterPhase(Phase next)
 
 	switch (next)
 	{
-	case Phase::Count3:	PlayIfSet(GameStartConst::kCount3Audio);	break;
 	case Phase::Count2:	PlayIfSet(GameStartConst::kCount2Audio);	break;
 	case Phase::Count1:	PlayIfSet(GameStartConst::kCount1Audio);	break;
-	case Phase::Go:		PlayIfSet(GameStartConst::kGoAudio);		break;
+	case Phase::Start:	PlayIfSet(GameStartConst::kStartAudio);	break;	// 水をドンピシャで入れろ
 	default:												break;
 	}
 }
@@ -57,9 +58,6 @@ void GameStart::Update()
 
 	switch (m_phase)
 	{
-	case Phase::Instruction:
-		if (m_frame >= GameStartConst::kInstrFrames) { EnterPhase(Phase::Count3); }
-		break;
 	case Phase::Count3:
 		if (m_frame >= GameStartConst::kCountFrames) { EnterPhase(Phase::Count2); }
 		break;
@@ -67,10 +65,10 @@ void GameStart::Update()
 		if (m_frame >= GameStartConst::kCountFrames) { EnterPhase(Phase::Count1); }
 		break;
 	case Phase::Count1:
-		if (m_frame >= GameStartConst::kCountFrames) { EnterPhase(Phase::Go); }
+		if (m_frame >= GameStartConst::kCountFrames) { EnterPhase(Phase::Start); }
 		break;
-	case Phase::Go:
-		if (m_frame >= GameStartConst::kGoFrames) { m_phase = Phase::Done; }	// 注水解禁
+	case Phase::Start:
+		if (m_frame >= GameStartConst::kStartFrames) { m_phase = Phase::Done; }	// 注水解禁
 		break;
 	default:
 		break;
@@ -84,21 +82,24 @@ void GameStart::DrawSprite()
 	KdSpriteShader& sprite = KdShaderManager::Instance().m_spriteShader;
 	KdShaderManager::Instance().ChangeBlendState(KdBlendState::Alpha);
 
-	// 全画面を少し暗くして文字を見やすく
+	// 全画面を少し暗く（画像に透過がある場合の背景。画像が全面不透明なら隠れる＝害なし）
 	Math::Color dark(1.0f, 1.0f, 1.0f, GameStartConst::kDarkAlpha);
 	sprite.DrawTex(&m_darkTex, 0, 0,
 		GameStartConst::kOverlayWidth, GameStartConst::kOverlayHeight, nullptr, &dark);
 
-	// フェーズごとの画像（カウント中は数字画像が無いので音声のみ＝暗幕だけ）
-	if (m_phase == Phase::Instruction)
+	// 現在のフェーズの画像を全画面表示（3→2→1→start）
+	KdTexture* tex = nullptr;
+	switch (m_phase)
 	{
-		sprite.DrawTex(&m_instrTex, 0, 0,
-			GameStartConst::kInstrWidth, GameStartConst::kInstrHeight);
+	case Phase::Count3:	tex = &m_tex3;		break;
+	case Phase::Count2:	tex = &m_tex2;		break;
+	case Phase::Count1:	tex = &m_tex1;		break;
+	case Phase::Start:	tex = &m_startTex;	break;
+	default:									break;
 	}
-	else if (m_phase == Phase::Go)
+	if (tex)
 	{
-		sprite.DrawTex(&m_goTex, 0, 0,
-			GameStartConst::kGoWidth, GameStartConst::kGoHeight);
+		sprite.DrawTex(tex, 0, 0, GameStartConst::kImageWidth, GameStartConst::kImageHeight);
 	}
 
 	KdShaderManager::Instance().UndoBlendState();
