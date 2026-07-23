@@ -86,10 +86,10 @@ void GameScene::Init()
 	m_objList.push_back(gameover);
 	m_wpGameOver = gameover;
 	//====================
-		// オブジェクト
-		//====================
-		//----- エフェクト -----
-		// 良
+	// オブジェクト
+	//====================
+	//----- エフェクト -----
+	// 良
 	std::shared_ptr<RyouEffect> _spRyou;
 	_spRyou = std::make_shared<RyouEffect>();
 	m_objList.push_back(_spRyou);
