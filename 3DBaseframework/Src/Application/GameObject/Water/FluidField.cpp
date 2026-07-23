@@ -245,6 +245,16 @@ bool FluidField::Init()
 		}
 	}
 
+	// -------- 質量正規化PS --------
+	{
+#include "../../Shader/Fluid/FluidShader_PS_MassScale.shaderInc"
+		if (FAILED(dev->CreatePixelShader(compiledBuffer, sizeof(compiledBuffer), nullptr, m_psMassScale.GetAddressOf())))
+		{
+			assert(0 && "流体 質量正規化PSの作成に失敗");
+			return false;
+		}
+	}
+
 	// -------- 定数バッファ（可視化色） --------
 	{
 		cbVisualize init;
@@ -417,6 +427,28 @@ bool FluidField::Init()
 		m_waterMass = sumMass;	// 現在の水量（以後、注水ぶんを加算していく）
 	}
 
+	// -------- 質量正規化：読み戻し用ステージングテクスチャ＋CB --------
+	{
+		D3D11_TEXTURE2D_DESC td = {};
+		td.Width = WaterConst::kGridWidth;
+		td.Height = WaterConst::kGridHeight;
+		td.MipLevels = 1;
+		td.ArraySize = 1;
+		td.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		td.SampleDesc.Count = 1;
+		td.Usage = D3D11_USAGE_STAGING;
+		td.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		if (FAILED(dev->CreateTexture2D(&td, nullptr, m_massReadback.GetAddressOf())))
+		{
+			assert(0 && "流体 質量読み戻しテクスチャの作成に失敗");
+			return false;
+		}
+
+		cbMassScale ms;
+		ms.Scale = 1.0f;
+		m_cbMassScale.Create(&ms);
+	}
+
 	m_initialized = true;
 	return true;
 }
@@ -476,12 +508,59 @@ void FluidField::Step(float deltaTime, bool pouring)
 		SolveFoam();
 	}
 
-	// ⑦ 現在の物理量＋泡から表示用テクスチャを生成
+	// ⑦ 質量正規化：GPU総質量を「注いだ量」へ合わせ、ドリフトで水が減るのを防ぐ
+	NormalizeMass();
+
+	// ⑧ 現在の物理量＋泡から表示用テクスチャを生成
 	m_cbVisualize.Write();
 	sm.SetPSConstantBuffer(0, m_cbVisualize.GetAddress());
 	RenderPass2(m_psVisualize.Get(), m_quantity.current, m_foam.current, m_displayTex);
 
 	sm.UndoRasterizerState();
+
+	// 次フレームの測定用に、確定した物理量をステージングへコピーしておく
+	KdDirect3D::Instance().WorkDevContext()->CopyResource(m_massReadback.Get(), m_quantity.current->WorkResource());
+	m_readbackValid = true;
+}
+
+// ===================================================
+// 質量正規化：前フレームのコピーから総質量を測り、注いだ量へ合わせてスケール
+// ===================================================
+void FluidField::NormalizeMass()
+{
+	ID3D11DeviceContext* ctx = KdDirect3D::Instance().WorkDevContext();
+
+	// 前フレームにコピー済みなら、総質量を測ってスケール率を更新する（読み戻しは1フレーム遅れ＝ストール無し）
+	if (m_readbackValid)
+	{
+		D3D11_MAPPED_SUBRESOURCE mapped = {};
+		if (SUCCEEDED(ctx->Map(m_massReadback.Get(), 0, D3D11_MAP_READ, 0, &mapped)))
+		{
+			const int w = WaterConst::kGridWidth;
+			const int h = WaterConst::kGridHeight;
+			double sum = 0.0;
+			const char* base = static_cast<const char*>(mapped.pData);
+			for (int r = 0; r < h; ++r)
+			{
+				const Math::Vector4* row = reinterpret_cast<const Math::Vector4*>(base + static_cast<size_t>(r) * mapped.RowPitch);
+				for (int c = 0; c < w; ++c) { sum += row[c].z; }
+			}
+			ctx->Unmap(m_massReadback.Get(), 0);
+
+			if (sum > 1e-4)
+			{
+				const float scale = m_waterMass / static_cast<float>(sum);
+				m_massScale = std::clamp(scale, 0.8f, 1.25f);	// 極端な補正は避ける
+			}
+		}
+	}
+
+	// スケールを質量・運動量へ一律適用
+	m_cbMassScale.Work().Scale = m_massScale;
+	m_cbMassScale.Write();
+	KdShaderManager::Instance().SetPSConstantBuffer(0, m_cbMassScale.GetAddress());
+	RenderPass(m_psMassScale.Get(), m_quantity.current, m_quantity.next);
+	m_quantity.Swap();
 }
 
 // ===================================================
@@ -519,6 +598,10 @@ void FluidField::Reset()
 	// 泡フィールドを0クリア
 	std::vector<Math::Vector4> zero(quantityData.size(), Math::Vector4(0.0f, 0.0f, 0.0f, 0.0f));
 	ctx->UpdateSubresource(m_foam.current->WorkResource(), 0, nullptr, zero.data(), rowPitch, 0);
+
+	// 質量正規化の状態を初期化（古いコピーで誤補正しないように）
+	m_readbackValid = false;
+	m_massScale = 1.0f;
 }
 
 // ===================================================
@@ -563,6 +646,11 @@ void FluidField::Release()
 	m_cbFoam.Release();
 	m_foam.current = nullptr;
 	m_foam.next = nullptr;
+
+	m_psMassScale.Reset();
+	m_massReadback.Reset();
+	m_cbMassScale.Release();
+	m_readbackValid = false;
 
 	m_intensity.clear();
 	m_connection = nullptr;

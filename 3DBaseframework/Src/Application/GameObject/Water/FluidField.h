@@ -71,6 +71,9 @@ private:
 	// 泡（炭酸）を1回進める（発生・浮上・拡散・減衰＝液へ還元）
 	void SolveFoam();
 
+	// 質量正規化：GPUの総質量を「注いだ量(m_waterMass)」へ合わせてスケール
+	void NormalizeMass();
+
 	// 可視化パスの色定数バッファ
 	struct cbVisualize
 	{
@@ -90,6 +93,13 @@ private:
 		float SpreadRate = 0.0f;	// 水平拡散
 		float DecayRate = 0.0f;		// 残る割合（残り=液へ戻る）
 		Math::Vector2 Pad;
+	};
+
+	// 質量正規化パスの定数バッファ
+	struct cbMassScale
+	{
+		float Scale = 1.0f;
+		Math::Vector3 Pad;
 	};
 
 	// 移流パスの定数バッファ
@@ -166,7 +176,14 @@ private:
 	KdConstantBuffer<cbEqualization>	m_cbEqualization;			// 補填パラメータ
 
 	int		m_inletCellCount = 0;	// 吸い込み口のセル数（注水量の積算に使う）
-	float	m_waterMass = 0.0f;		// 現在の水量（質量の合計。CPUで積算）
+	float	m_waterMass = 0.0f;		// 現在の水量（質量の合計。CPUで積算＝注いだ総量）
+
+	// 質量正規化（GPU総質量を注いだ量へ合わせて保存を強制）
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psMassScale;		// 一律スケール
+	Microsoft::WRL::ComPtr<ID3D11Texture2D>		m_massReadback;		// 読み戻し用ステージング
+	KdConstantBuffer<cbMassScale>	m_cbMassScale;					// スケール率
+	bool	m_readbackValid = false;	// 前フレームのコピーが読めるか
+	float	m_massScale = 1.0f;			// 今回適用するスケール率
 
 	// 炭酸：泡
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psFoamGen;		// 泡の発生
