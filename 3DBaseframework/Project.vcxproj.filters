@@ -100,6 +100,9 @@
     <Filter Include="Src\Application\GameObject\GameOver">
       <UniqueIdentifier>{bfb750aa-ec71-4db0-88c8-61d3f9526a5a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Clear">
+      <UniqueIdentifier>{270d0fe5-06bd-435b-9644-9a8b22080544}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -285,23 +288,29 @@
     <ClInclude Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.h">
       <Filter>Src\Application\GameObject\Camera\FPSCamera</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Application\GameObject\Cup\CupConst.h">
-      <Filter>Src\Application\GameObject\Cup</Filter>
+    <ClInclude Include="Src\Application\GameObject\GameOver\GameOver.h">
+      <Filter>Src\Application\GameObject\GameOver</Filter>
     </ClInclude>
     <ClInclude Include="Src\Application\GameObject\Cup\Cup.h">
       <Filter>Src\Application\GameObject\Cup</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Application\GameObject\Water\WaterConst.h">
-      <Filter>Src\Application\GameObject\Water</Filter>
+    <ClInclude Include="Src\Application\GameObject\Cup\CupConst.h">
+      <Filter>Src\Application\GameObject\Cup</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Application\GameObject\Water\Water.h">
-      <Filter>Src\Application\GameObject\Water</Filter>
+    <ClInclude Include="Src\Application\GameObject\Clear\Clear.h">
+      <Filter>Src\Application\GameObject\Clear</Filter>
     </ClInclude>
     <ClInclude Include="Src\Application\GameObject\UI\UIConst.h">
       <Filter>Src\Application\GameObject\UI</Filter>
     </ClInclude>
     <ClInclude Include="Src\Application\GameObject\UI\GameUI.h">
       <Filter>Src\Application\GameObject\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Water\Water.h">
+      <Filter>Src\Application\GameObject\Water</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Water\WaterConst.h">
+      <Filter>Src\Application\GameObject\Water</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -458,14 +467,20 @@
     <ClCompile Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.cpp">
       <Filter>Src\Application\GameObject\Camera\FPSCamera</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\GameOver\GameOver.cpp">
+      <Filter>Src\Application\GameObject\GameOver</Filter>
+    </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Cup\Cup.cpp">
       <Filter>Src\Application\GameObject\Cup</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Application\GameObject\Water\Water.cpp">
-      <Filter>Src\Application\GameObject\Water</Filter>
+    <ClCompile Include="Src\Application\GameObject\Clear\Clear.cpp">
+      <Filter>Src\Application\GameObject\Clear</Filter>
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\UI\GameUI.cpp">
       <Filter>Src\Application\GameObject\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Water\Water.cpp">
+      <Filter>Src\Application\GameObject\Water</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
