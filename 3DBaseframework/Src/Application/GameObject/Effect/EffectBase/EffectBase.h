@@ -12,11 +12,34 @@ public:
 	virtual void DrawLit()						override {}
 	virtual void DrawSprite()					override {}
 
+	// アクティブ化　成功（良）時だけ表示する。初期は無効。
+	virtual void Activate() { m_activeFlg = true; }
+
+	// 非アクティブ化
+	virtual void Deactivate() { m_activeFlg = false; }
+
+	// アクティブ状態確認関数
+	virtual bool IsActiveFlg() const { return m_activeFlg; }
+
+	// 終了確認関数
+	virtual bool IsEndFlg() const { return m_endFlg; }
+
 	// 拡縮関数
 	virtual void ScalingIteration(float _scaleMax, float _scaleMin, float _speed);
 
+	// キャラ配置演出（拡大→縮小のワンショット）
+	virtual void PlaceChara();
 
 protected:
+	//====================
+	// 実行用フラグなど
+	//====================
+	// アクティブ状態フラグ
+	bool m_activeFlg = false;
+
+	// エフェクト終了フラグ
+	bool m_endFlg = false;
+
 	//====================
 	// 描画関係
 	//====================

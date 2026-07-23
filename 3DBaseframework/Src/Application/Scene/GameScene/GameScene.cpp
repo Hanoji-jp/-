@@ -14,6 +14,7 @@
 #include "../../GameObject/Tuning/Tuning.h"
 #include "../../GameObject/StandLight/StandLight.h"
 #include "../../GameObject/Wall/Wall.h"
+#include "../../GameObject/Window/Window.h"
 
 void GameScene::Event()
 {
@@ -108,10 +109,10 @@ void GameScene::Init()
 	AddObject(spDrinkBar);
 
 	//====================
-		// オブジェクト
-		//====================
-		//----- エフェクト -----
-		// 良
+	// オブジェクト
+	//====================
+	//----- エフェクト -----
+	// 良
 	std::shared_ptr<RyouEffect> _spRyou;
 	_spRyou = std::make_shared<RyouEffect>();
 	m_objList.push_back(_spRyou);
@@ -135,7 +136,12 @@ void GameScene::Init()
 	spWall->Init();
 	AddObject(spWall);
 
-	// 開始演出（水をドンピシャで入れろ→3・2・1→始めっ）。最後に追加＝スプライトが最前面に出る。
+	// 窓（インテリア）
+	std::shared_ptr<Window> spWindow = std::make_shared<Window>();
+	spWindow->Init();
+	AddObject(spWindow);
+
+	// 開始演出（3→2→1→水をドンピシャで入れろ）。最後に追加＝スプライトが最前面に出る。
 	//  これが終わるまで注水は受け付けない（Eventでゲート）。
 	std::shared_ptr<GameStart> spGameStart = std::make_shared<GameStart>();
 	spGameStart->Init();
