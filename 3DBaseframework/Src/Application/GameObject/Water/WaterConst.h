@@ -65,4 +65,31 @@ namespace WaterConst
 	inline constexpr float kInitBlockRightRate  = 0.75f;	// 右端
 	inline constexpr float kInitBlockTopRate    = 0.08f;	// 上端（小さいほど上）
 	inline constexpr float kInitBlockBottomRate = 0.42f;	// 下端
+
+	// ===============================================
+	// Phase3：圧力（マルチグリッド解法）
+	// ===============================================
+
+	// 各レベルでの圧力ヤコビ反復回数
+	inline constexpr int kJacobiIterations = 5;
+
+	// intensityピラミッドを作る最小サイズ（幅・高さがこれ未満になったら止める）
+	inline constexpr int kMinPyramidSize = 8;
+
+	// ===============================================
+	// Phase4：注水（pour）と補填（equalization）
+	// ===============================================
+
+	// 吸い込み口（上部中央）の形（グリッドのセル単位）
+	inline constexpr int kPourHalfCols = 3;	// 中心から左右へ何列ぶんか（幅 = 2*これ）
+	inline constexpr int kPourTopRow   = 2;	// 上端から何row下に置くか
+	inline constexpr int kPourRows     = 3;	// 縦方向の厚み（row数）
+
+	// 1ステップで注ぐ量・下向き速度
+	inline constexpr float kPourMassPerStep = 0.5f;	// セルあたりに加える質量
+	inline constexpr float kPourVelocity    = 0.6f;	// 加える下向き速度
+
+	// equalization（余剰を削り不足を補う率）
+	inline constexpr float kEqualizationSurplusRate = 0.01f;
+	inline constexpr float kEqualizationDeficitRate = 0.01f;
 }

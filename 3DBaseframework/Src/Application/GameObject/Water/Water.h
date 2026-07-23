@@ -40,8 +40,8 @@ public:
 	// 注いでいる最中かどうかを設定
 	void SetPouring(bool pouring) { m_isPouring = pouring; }
 
-	// 現在の水位（0.0=空 ～ 1.0=内側領域の上端）
-	float GetFillRate() const { return m_fillRate; }
+	// 現在の水位（0.0=空 ～ 1.0=満杯）。FluidFieldが注水量から算出する
+	float GetFillRate() const;
 
 	// 水位をリセット
 	void Reset();
@@ -52,9 +52,6 @@ private:
 
 	// コップ内側へ水面を貼る表示用板ポリゴン
 	WaterDisplayPolygon m_displayPoly;
-
-	// 平均水位（0.0～1.0）
-	float m_fillRate = 0.0f;
 
 	// 注水中フラグ
 	bool m_isPouring = false;

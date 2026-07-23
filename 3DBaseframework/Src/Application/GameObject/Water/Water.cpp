@@ -36,8 +36,7 @@ void Water::Init()
 	// 可視化テクスチャをベースカラーとして貼る（毎フレーム中身が更新される）
 	m_displayPoly.SetMaterial(m_fluid->GetDisplayTexture());
 
-	// 開始時の水位（Phase1では初期充填率を保持。注水はPhase4で連携）
-	m_fillRate  = WaterConst::kInitialFillRate;
+	// 空のコップから開始。注水中フラグはオフ
 	m_isPouring = false;
 
 	m_drawType = eDrawTypeUnLit;
@@ -46,7 +45,11 @@ void Water::Init()
 void Water::Reset()
 {
 	if (m_fluid) { m_fluid->Reset(); }
-	m_fillRate = WaterConst::kInitialFillRate;
+}
+
+float Water::GetFillRate() const
+{
+	return m_fluid ? m_fluid->GetFillRate() : 0.0f;
 }
 
 void Water::PreDraw()
@@ -57,12 +60,12 @@ void Water::PreDraw()
 	float deltaTime = Application::Instance().GetDeltaTime();
 	if (deltaTime > WaterConst::kMaxDeltaTime) { deltaTime = WaterConst::kMaxDeltaTime; }
 
-	m_fluid->Step(deltaTime);
+	m_fluid->Step(deltaTime, m_isPouring);
 }
 
 void Water::Update()
 {
-	// Phase1では水位は初期値を保持（注水・判定連携はPhase4で実装）
+	// 更新はGPU側（PreDraw）で行うため、ここでは何もしない
 }
 
 void Water::DrawUnLit()

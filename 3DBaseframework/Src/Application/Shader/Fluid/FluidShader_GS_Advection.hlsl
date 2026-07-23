@@ -1,17 +1,17 @@
 // ===================================================
-// æµä½“ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ ç§»æµãƒ‘ã‚¹ï¼ˆã‚¸ã‚ªãƒ¡ãƒˆãƒªã‚·ã‚§ãƒ¼ãƒ€ï¼‰
-//  DirectX11 ã«ã¯ WebGL ã® gl_PointSize ãŒç„¡ã„ãŸã‚ã€
-//  1ç‚¹ã‚’ã€Œä¸­å¿ƒÂ±kSplatRadius ã®å°ã‚¯ã‚¢ãƒƒãƒ‰ã€ã«å±•é–‹ã—ã¦æ’’ãè¾¼ã¿ç¯„å›²ã‚’ä½œã‚‹ã€‚
-//  ï¼ˆã¿ãšã‚ãã³.html ã® gl_PointSize=3 ç›¸å½“ï¼‰
+// —¬‘ÌƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“ ˆÚ—¬ƒpƒXiƒWƒIƒƒgƒŠƒVƒF[ƒ_j
+//  DirectX11 ‚É‚Í WebGL ‚Ì gl_PointSize ‚ª–³‚¢‚½‚ßA
+//  1“_‚ğu’†S}kSplatRadius ‚Ì¬ƒNƒAƒbƒhv‚É“WŠJ‚µ‚ÄT‚«‚İ”ÍˆÍ‚ğì‚éB
+//  i‚İ‚¸‚ ‚»‚Ñ.html ‚Ì gl_PointSize=3 ‘Š“–j
 // ===================================================
 
 cbuffer cbAdvection : register(b0)
 {
-	float2 g_gravity;	// æœªä½¿ç”¨ï¼ˆVSã¨å…±æœ‰ã®å®šæ•°ãƒãƒƒãƒ•ã‚¡ï¼‰
-	float2 g_gridSize;	// ã‚°ãƒªãƒƒãƒ‰è§£åƒåº¦ (W, H)
+	float2 g_gravity;	// –¢g—piVS‚Æ‹¤—L‚Ì’è”ƒoƒbƒtƒ@j
+	float2 g_gridSize;	// ƒOƒŠƒbƒh‰ğ‘œ“x (W, H)
 };
 
-static const float kSplatRadius = 1.5;	// PointSize=3 ç›¸å½“ï¼ˆä¸­å¿ƒÂ±1.5pxï¼‰
+static const float kSplatRadius = 1.5;	// PointSize=3 ‘Š“–i’†S}1.5pxj
 
 struct VSOutput
 {
@@ -22,11 +22,11 @@ struct VSOutput
 struct GSOutput
 {
 	float4 Pos    : SV_Position;
-	float2 NewPos : TEXCOORD0;	// æ’’ãè¾¼ã¿ä¸­å¿ƒï¼ˆãƒ”ã‚¯ã‚»ãƒ«åº§æ¨™ï¼‰
-	float4 NewQ   : TEXCOORD1;	// é‹ã¶ç‰©ç†é‡
+	float2 NewPos : TEXCOORD0;	// T‚«‚İ’†SiƒsƒNƒZƒ‹À•Wj
+	float4 NewQ   : TEXCOORD1;	// ‰^‚Ô•¨——Ê
 };
 
-// ãƒ”ã‚¯ã‚»ãƒ«åº§æ¨™ â†’ ã‚¯ãƒªãƒƒãƒ—ç©ºé–“ï¼ˆrow0=ä¸Š ã«åˆã‚ã›ã¦Yåè»¢ï¼‰
+// ƒsƒNƒZƒ‹À•W ¨ ƒNƒŠƒbƒv‹óŠÔirow0=ã ‚É‡‚í‚¹‚ÄY”½“]j
 float2 PixelToClip(float2 px)
 {
 	return float2(px.x / g_gridSize.x * 2.0 - 1.0,
@@ -38,7 +38,7 @@ void main(point VSOutput input[1], inout TriangleStream<GSOutput> stream)
 {
 	float2 center = input[0].NewPos;
 
-	// ãƒˆãƒ©ã‚¤ã‚¢ãƒ³ã‚°ãƒ«ã‚¹ãƒˆãƒªãƒƒãƒ—ç”¨ã« å·¦ä¸‹ãƒ»å·¦ä¸Šãƒ»å³ä¸‹ãƒ»å³ä¸Š ã®é †ã§å‡ºåŠ›
+	// ƒgƒ‰ƒCƒAƒ“ƒOƒ‹ƒXƒgƒŠƒbƒv—p‚É ¶‰ºE¶ãE‰E‰ºE‰Eã ‚Ì‡‚Åo—Í
 	float2 corner[4] =
 	{
 		float2(-kSplatRadius, -kSplatRadius),

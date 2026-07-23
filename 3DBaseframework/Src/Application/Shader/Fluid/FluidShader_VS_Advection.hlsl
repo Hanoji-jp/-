@@ -1,30 +1,30 @@
 // ===================================================
-// æµä½“ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ ç§»æµãƒ‘ã‚¹ï¼ˆé ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ï¼‰
-//  ã¿ãšã‚ãã³.html ã® advection-32-vertex ã‚’ç§»æ¤ã€‚
-//  1ã‚»ãƒ«=1ç‚¹ã€‚ã‚»ãƒ«ã®ç‰©ç†é‡ã‹ã‚‰é€Ÿåº¦ã‚’æ±‚ã‚ã€é‡åŠ›ã‚’åŠ ãˆã¦ç§»å‹•å…ˆã‚’è¨ˆç®—ã—ã€
-//  ã€Œé‹ã¶ç‰©ç†é‡(NewQ)ã€ã¨ã€Œç§»å‹•å…ˆãƒ”ã‚¯ã‚»ãƒ«åº§æ¨™(NewPos)ã€ã‚’ã‚¸ã‚ªãƒ¡ãƒˆãƒªã‚·ã‚§ãƒ¼ãƒ€ã¸æ¸¡ã™ã€‚
-//  å®Ÿéš›ã®ã‚°ãƒªãƒƒãƒ‰ã¸ã®æ’’ãè¾¼ã¿(splat)ã¯GSâ†’PSã¨åŠ ç®—ãƒ–ãƒ¬ãƒ³ãƒ‰ã§è¡Œã†ã€‚
+// —¬‘ÌƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“ ˆÚ—¬ƒpƒXi’¸“_ƒVƒF[ƒ_j
+//  ‚İ‚¸‚ ‚»‚Ñ.html ‚Ì advection-32-vertex ‚ğˆÚAB
+//  1ƒZƒ‹=1“_BƒZƒ‹‚Ì•¨——Ê‚©‚ç‘¬“x‚ğ‹‚ßAd—Í‚ğ‰Á‚¦‚ÄˆÚ“®æ‚ğŒvZ‚µA
+//  u‰^‚Ô•¨——Ê(NewQ)v‚ÆuˆÚ“®æƒsƒNƒZƒ‹À•W(NewPos)v‚ğƒWƒIƒƒgƒŠƒVƒF[ƒ_‚Ö“n‚·B
+//  ÀÛ‚ÌƒOƒŠƒbƒh‚Ö‚ÌT‚«‚İ(splat)‚ÍGS¨PS‚Æ‰ÁZƒuƒŒƒ“ƒh‚Ås‚¤B
 // ===================================================
 
 Texture2D<float4> g_quantity : register(t0);
 
 cbuffer cbAdvection : register(b0)
 {
-	float2 g_gravity;	// é‡åŠ›ï¼ˆrowå¢—åŠ æ–¹å‘ï¼ç”»é¢ä¸‹ãŒ +ï¼‰
-	float2 g_gridSize;	// ã‚°ãƒªãƒƒãƒ‰è§£åƒåº¦ (W, H)
+	float2 g_gravity;	// d—Íirow‘‰Á•ûŒü‰æ–Ê‰º‚ª +j
+	float2 g_gridSize;	// ƒOƒŠƒbƒh‰ğ‘œ“x (W, H)
 };
 
 static const float kMinMass = 0.001;
 
 struct VSOutput
 {
-	float2 NewPos : TEXCOORD0;	// ç§»å‹•å¾Œã®ãƒ”ã‚¯ã‚»ãƒ«åº§æ¨™
-	float4 NewQ   : TEXCOORD1;	// é‹ã¶ç‰©ç†é‡ (xy=é‹å‹•é‡, z=è³ªé‡, w=ä½“ç©)
+	float2 NewPos : TEXCOORD0;	// ˆÚ“®Œã‚ÌƒsƒNƒZƒ‹À•W
+	float4 NewQ   : TEXCOORD1;	// ‰^‚Ô•¨——Ê (xy=‰^“®—Ê, z=¿—Ê, w=‘ÌÏ)
 };
 
 VSOutput main(float2 position : POSITION)
 {
-	int2 cell = int2(position);					// (col+0.5, row+0.5) â†’ (col, row)
+	int2 cell = int2(position);					// (col+0.5, row+0.5) ¨ (col, row)
 	float4 q = g_quantity.Load(int3(cell, 0));
 
 	float2 velocity = q.xy / max(q.z, kMinMass);
@@ -32,7 +32,7 @@ VSOutput main(float2 position : POSITION)
 
 	VSOutput output;
 	output.NewPos = newPos;
-	// é‹å‹•é‡ = è³ªé‡ Ã— å¤‰ä½ã€è³ªé‡ãƒ»ä½“ç©ã¯ãã®ã¾ã¾é‹ã¶
+	// ‰^“®—Ê = ¿—Ê ~ •ÏˆÊA¿—ÊE‘ÌÏ‚Í‚»‚Ì‚Ü‚Ü‰^‚Ô
 	output.NewQ = float4(q.z * (newPos - position), q.z, q.w);
 	return output;
 }
