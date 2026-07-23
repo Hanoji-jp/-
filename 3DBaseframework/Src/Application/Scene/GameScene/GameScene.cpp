@@ -81,11 +81,12 @@ void GameScene::Init()
 	spGameUI->Init();
 	spGameUI->SetTargetWater(spWater);
 	AddObject(spGameUI);
-	// ゲームオーバー（失敗時のみ表示。初期は無効）
-	std::shared_ptr<GameOver> gameover = std::make_shared<GameOver>();
-	gameover->Init();
-	m_objList.push_back(gameover);
-	m_wpGameOver = gameover;
+
+	// 机（コップの土台）：GameOverの全画面暗幕より先に描くため、GameOverより前に追加する
+	std::shared_ptr<Desk> spDesk = std::make_shared<Desk>();
+	spDesk->Init();
+	AddObject(spDesk);
+
 	//====================
 		// オブジェクト
 		//====================
@@ -97,10 +98,12 @@ void GameScene::Init()
 	_spRyou->Init();
 	m_wpRyou = _spRyou;
 
-	// 机（コップの土台）
-	std::shared_ptr<Desk> spDesk = std::make_shared<Desk>();
-	spDesk->Init();
-	AddObject(spDesk);
+	// ゲームオーバー（失敗時のみ表示。初期は無効）
+	//  全画面の暗幕なので、シーンの3D物より後（最後）に描く必要がある。
+	std::shared_ptr<GameOver> gameover = std::make_shared<GameOver>();
+	gameover->Init();
+	m_objList.push_back(gameover);
+	m_wpGameOver = gameover;
 
 	// 机（インテリア）
 	std::shared_ptr<StandLight> spLight = std::make_shared<StandLight>();
