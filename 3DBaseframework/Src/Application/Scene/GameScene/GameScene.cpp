@@ -9,6 +9,9 @@
 #include"../../GameObject/GameOver/GameOver.h"
 #include"../../GameObject/Effect/Clear/RyouEffect/RyouEffect.h"
 #include "../../GameObject/Desk/Desk.h"
+#include "../../GameObject/StandLight/StandLight.h"
+#include "../../GameObject/Wall/Wall.h"
+
 void GameScene::Event()
 {
 	// タイトルへ戻る
@@ -31,7 +34,7 @@ void GameScene::Event()
 		{
 			spWater->Reset();
 			if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Deactivate(); }
-			if (auto spRyou = m_wpRyou.lock())         { spRyou->Deactivate(); }
+			if (auto spRyou = m_wpRyou.lock()) { spRyou->Deactivate(); }
 		}
 
 		// 注ぎ終わり（一発勝負確定）で結果に応じて演出を出す
@@ -97,6 +100,14 @@ void GameScene::Init()
 	std::shared_ptr<Desk> spDesk = std::make_shared<Desk>();
 	spDesk->Init();
 	AddObject(spDesk);
+
+	// 机（インテリア）
+	std::shared_ptr<StandLight> spLight = std::make_shared<StandLight>();
+	spLight->Init();
+	AddObject(spLight);
+
+	// 壁（インテリア）
+	std::shared_ptr<Wall> spWall = std::make_shared<Wall>();
+	spWall->Init();
+	AddObject(spWall);
 }
-
-
