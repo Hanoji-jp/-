@@ -96,7 +96,9 @@ void TitleScene::Update()
 		SceneManager::Instance().SetNextScene
 		(
 			SceneManager::SceneType::Game
+
 		);
+		m_titleSe->Stop();
 	}
 }
 
@@ -107,6 +109,8 @@ void TitleScene::Event()
 
 void TitleScene::Init()
 {
+	m_titleSe = KdAudioManager::Instance().Play("Asset//Data/Audio/title.WAV", true);
+
 	m_spaceTex.Load("Asset/Textures/space.png");
 	m_titleTex.Load("Asset/Textures/title_kari.png");
 

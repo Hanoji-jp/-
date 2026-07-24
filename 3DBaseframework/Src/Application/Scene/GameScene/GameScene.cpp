@@ -53,30 +53,49 @@ void GameScene::Event()
 		spWater->SetPouring(isPouring);
 
 		// 水が落ちている間だけ water.mp3 をループ再生する。
-		//  注水が始まったら鳴らし始め、止めたら停止する（多重再生しないよう実体を保持）。
-		if (isPouring)
+		//  連打で新規インスタンスが積み上がらないよう、1本だけ持って再生／停止を切り替える。
+		if (isPouring && !m_waterPlaying)
 		{
-			if (!m_waterSe)
+			if (m_waterSe)
+			{
+				m_waterSe->Play(true);
+				KdAudioManager::Instance().AddPlayList(m_waterSe);
+			}
+			else
 			{
 				m_waterSe = KdAudioManager::Instance().Play("Asset/Data/Audio/water.mp3", true);
 			}
+			m_waterPlaying = true;
 		}
-		else if (m_waterSe)
+		else if (!isPouring && m_waterPlaying)
 		{
-			m_waterSe->Stop();
-			m_waterSe = nullptr;
+			if (m_waterSe) { m_waterSe->Stop(); }
+			m_waterPlaying = false;
 		}
 
 		//ボタンを押したらpoti.mp3を再生する(連打防止)
 //イントロが終わったら押せるようにする
 		if (introDone)
 		{
-			static bool spaceDownPrev = false;
-			if (spaceDown && !spaceDownPrev)
+			if (spaceDown && !m_spaceDownPrev)
 			{
-				KdAudioManager::Instance().Play("Asset/Data/Audio/poti.mp3", false);
+				// KdAudioManager::Play() は呼ぶたびに新しい再生インスタンスを作るため、
+				// 連打するとpotiの同時発声が積み上がり、先に鳴っていた音（水音など）が
+				// 発声数を奪われて途中で切れてしまう。
+				// そこで poti は1本だけ持ち、押すたびに頭から鳴らし直す。
+				if (m_potiSe)
+				{
+					// Play() の中で一度Stopしてから再生するので頭出しになる
+					m_potiSe->Play(false);
+					// 鳴り終わると再生リストから外れているので、一括停止などが効くよう戻す
+					KdAudioManager::Instance().AddPlayList(m_potiSe);
+				}
+				else
+				{
+					m_potiSe = KdAudioManager::Instance().Play("Asset/Data/Audio/poti.mp3", false);
+				}
 			}
-			spaceDownPrev = spaceDown;
+			m_spaceDownPrev = spaceDown;
 		}
 
 

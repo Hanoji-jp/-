@@ -30,7 +30,7 @@ private:
 
 	//背景の流体（サイン波画像の代わりに、実際のGPU流体シミュレーションを表示する）
 	std::shared_ptr<FluidField> m_fluid;
-
+	std::shared_ptr<KdSoundInstance> m_titleSe;	//タイトルBGM
 	//流体を活かしておくための注水タイマー（一定周期で少し注いで波立たせる）
 	float m_fluidTime = 0.0f;
 };
