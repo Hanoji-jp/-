@@ -5,7 +5,7 @@
 // 前方宣言
 class Water;
 class GameOver;
-class RyouEffect;
+class ClearEffectManager;
 class GameStart;
 
 class GameScene : public BaseScene
@@ -31,9 +31,9 @@ private:
 	// 失敗時に表示するゲームオーバー
 	std::weak_ptr<GameOver> m_wpGameOver;
 
-	// 成功（良）時に表示する演出
-	std::weak_ptr<RyouEffect> m_wpRyou;
-
 	// 開始演出（水をドンピシャで入れろ→3・2・1→始めっ）。終わるまで注水を受け付けない。
 	std::weak_ptr<GameStart> m_wpGameStart;
+
+	// クリアエフェクトマネージャー
+	std::weak_ptr<ClearEffectManager> m_wpClrEftMng;
 };
