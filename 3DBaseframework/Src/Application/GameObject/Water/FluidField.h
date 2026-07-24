@@ -40,6 +40,15 @@ public:
 	// 現在の水位（0.0=空 ～ 1.0=満杯）。注いだ水量から算出（読み戻し不要）
 	float GetFillRate() const;
 
+	// -------- タイトル演出などで使うオプション（Init を呼ぶ前に設定する） --------
+	// グリッド解像度をこのインスタンス専用に指定する（未指定なら WaterConst の既定値）。
+	//  例：タイトル背景は画面と同じ16:9にしたいので 480x270 など。
+	void SetGridSize(int w, int h) { m_gridW = w; m_gridH = h; }
+	// コップ多角形ではなく「全面の水槽」を形状マスクにする（外周だけ壁）
+	void SetFullRectMask(bool enable) { m_fullRectMask = enable; }
+	// 初期の水量（下からの割合 0〜1）。0＝空から開始
+	void SetInitialFill(float rate)   { m_initialFill = rate; }
+
 private:
 	// quantity（xy=運動量, z=質量, w=体積）の ping-pong バッファ
 	struct DoubleBuffer
@@ -183,6 +192,15 @@ private:
 	std::shared_ptr<KdTexture>	m_solidOpen   = nullptr;		// シュートを開けたマスク（注水中）
 	std::shared_ptr<KdTexture>	m_solidClosed = nullptr;		// シュートを塞いだマスク（止水中＝蓋）
 	int							m_framesSinceRelease = 100000;	// 止水からの経過フレーム（蓋をするまでの遅延用）
+
+	// タイトル演出用オプション（Init前に設定）
+	bool	m_fullRectMask = false;	// true＝コップ形状ではなく全面の水槽（外周だけ壁）
+	float	m_initialFill  = 0.0f;	// 初期の水量（下からの割合 0〜1）
+
+	// このインスタンスのグリッド解像度。0なら Init で WaterConst の既定値を使う。
+	//  インスタンスごとに持つことで、ゲーム(縦長)とタイトル(16:9)で別解像度にできる。
+	int		m_gridW = 0;
+	int		m_gridH = 0;
 
 	// 注水・補填
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_psPour;			// 注水

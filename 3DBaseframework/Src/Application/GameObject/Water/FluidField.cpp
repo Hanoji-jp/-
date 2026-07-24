@@ -10,6 +10,14 @@ bool FluidField::Init()
 	ID3D11Device* dev = KdDirect3D::Instance().WorkDev();
 	if (!dev) { return false; }
 
+	// グリッド解像度：SetGridSize で指定されていなければ WaterConst の既定値を使う。
+	//  以降このインスタンスは m_gridW/m_gridH で動くので、ゲームとタイトルで別解像度にできる。
+	if (m_gridW <= 0 || m_gridH <= 0)
+	{
+		m_gridW = WaterConst::kGridWidth;
+		m_gridH = WaterConst::kGridHeight;
+	}
+
 	// -------- フルスクリーン頂点（クリップ空間 / トライアングルストリップ） --------
 	//  WaterSurfacePolygon と同じ「下→上」「左→右」順で並べる
 	m_screenVert[0].Pos = { -1.0f, -1.0f, 0.0f };	// 左下
@@ -291,16 +299,16 @@ bool FluidField::Init()
 		m_cbFoam.Create(&f);
 
 		// 泡フィールド（0で初期化）
-		std::vector<Math::Vector4> zero(static_cast<size_t>(WaterConst::kGridWidth) * WaterConst::kGridHeight,
+		std::vector<Math::Vector4> zero(static_cast<size_t>(m_gridW) * m_gridH,
 			Math::Vector4(0.0f, 0.0f, 0.0f, 0.0f));
 		D3D11_SUBRESOURCE_DATA fsrd = {};
 		fsrd.pSysMem = zero.data();
-		fsrd.SysMemPitch = static_cast<UINT>(WaterConst::kGridWidth * sizeof(Math::Vector4));
+		fsrd.SysMemPitch = static_cast<UINT>(m_gridW * sizeof(Math::Vector4));
 
 		m_foam.current = std::make_shared<KdTexture>();
 		m_foam.next    = std::make_shared<KdTexture>();
-		if (!m_foam.current->CreateRenderTarget(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, &fsrd) ||
-			!m_foam.next->CreateRenderTarget(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, nullptr))
+		if (!m_foam.current->CreateRenderTarget(m_gridW, m_gridH, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, &fsrd) ||
+			!m_foam.next->CreateRenderTarget(m_gridW, m_gridH, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, nullptr))
 		{
 			assert(0 && "流体 泡フィールドの作成に失敗");
 			return false;
@@ -313,15 +321,15 @@ bool FluidField::Init()
 
 	D3D11_SUBRESOURCE_DATA srd = {};
 	srd.pSysMem = quantityData.data();
-	srd.SysMemPitch = static_cast<UINT>(WaterConst::kGridWidth * sizeof(Math::Vector4));
+	srd.SysMemPitch = static_cast<UINT>(m_gridW * sizeof(Math::Vector4));
 
 	m_quantity.current = std::make_shared<KdTexture>();
 	m_quantity.next = std::make_shared<KdTexture>();
 	m_displayTex = std::make_shared<KdTexture>();
 
-	if (!m_quantity.current->CreateRenderTarget(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, &srd) ||
-		!m_quantity.next->CreateRenderTarget(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, nullptr) ||
-		!m_displayTex->CreateRenderTarget(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 1, nullptr))
+	if (!m_quantity.current->CreateRenderTarget(m_gridW, m_gridH, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, &srd) ||
+		!m_quantity.next->CreateRenderTarget(m_gridW, m_gridH, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, nullptr) ||
+		!m_displayTex->CreateRenderTarget(m_gridW, m_gridH, DXGI_FORMAT_R8G8B8A8_UNORM, 1, nullptr))
 	{
 		assert(0 && "流体 レンダーターゲットの作成に失敗");
 		return false;
@@ -331,7 +339,7 @@ bool FluidField::Init()
 	{
 		cbAdvection init;
 		init.Gravity  = { 0.0f, WaterConst::kGravityPerStep };	// row増加＝画面下が +
-		init.GridSize = { static_cast<float>(WaterConst::kGridWidth), static_cast<float>(WaterConst::kGridHeight) };
+		init.GridSize = { static_cast<float>(m_gridW), static_cast<float>(m_gridH) };
 		init.Damp     = WaterConst::kVelocityDampPerStep;		// 運動量減衰（沈静化）
 		m_cbAdvection.Create(&init);
 	}
@@ -358,10 +366,10 @@ bool FluidField::Init()
 	// -------- 移流用 頂点バッファ（1セル1点：セル中心のピクセル座標） --------
 	{
 		std::vector<CellVertex> cells;
-		cells.reserve(static_cast<size_t>(WaterConst::kGridWidth) * WaterConst::kGridHeight);
-		for (int row = 0; row < WaterConst::kGridHeight; ++row)
+		cells.reserve(static_cast<size_t>(m_gridW) * m_gridH);
+		for (int row = 0; row < m_gridH; ++row)
 		{
-			for (int col = 0; col < WaterConst::kGridWidth; ++col)
+			for (int col = 0; col < m_gridW; ++col)
 			{
 				cells.push_back({ { col + 0.5f, row + 0.5f } });
 			}
@@ -382,7 +390,7 @@ bool FluidField::Init()
 	}
 
 	// -------- 圧力：intensityピラミッド（W×H から半分ずつ、最小サイズまで） --------
-	for (int lw = WaterConst::kGridWidth, lh = WaterConst::kGridHeight;
+	for (int lw = m_gridW, lh = m_gridH;
 		lw >= WaterConst::kMinPyramidSize && lh >= WaterConst::kMinPyramidSize;
 		lw >>= 1, lh >>= 1)
 	{
@@ -400,7 +408,7 @@ bool FluidField::Init()
 
 	// -------- 圧力：connection（4近傍への圧力勾配） --------
 	m_connection = std::make_shared<KdTexture>();
-	if (!m_connection->CreateRenderTarget(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, nullptr))
+	if (!m_connection->CreateRenderTarget(m_gridW, m_gridH, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, nullptr))
 	{
 		assert(0 && "流体 connectionの作成に失敗");
 		return false;
@@ -416,9 +424,9 @@ bool FluidField::Init()
 			BuildSolidMask(maskData, chuteOpen);
 			D3D11_SUBRESOURCE_DATA msrd = {};
 			msrd.pSysMem = maskData.data();
-			msrd.SysMemPitch = static_cast<UINT>(WaterConst::kGridWidth * sizeof(Math::Vector4));
+			msrd.SysMemPitch = static_cast<UINT>(m_gridW * sizeof(Math::Vector4));
 			dst = std::make_shared<KdTexture>();
-			return dst->Create(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, &msrd);
+			return dst->Create(m_gridW, m_gridH, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, &msrd);
 		};
 		if (!createMask(true, m_solidOpen) || !createMask(false, m_solidClosed))
 		{
@@ -431,7 +439,7 @@ bool FluidField::Init()
 	// -------- 注水・補填の定数バッファ＋初期水量 --------
 	{
 		// 吸い込み口（上部中央の矩形）
-		const int centerCol = WaterConst::kGridWidth / 2 + WaterConst::kPourCenterColOffset;
+		const int centerCol = m_gridW / 2 + WaterConst::kPourCenterColOffset;
 		const int colMin = centerCol - WaterConst::kPourHalfCols;
 		const int colMax = centerCol + WaterConst::kPourHalfCols;
 		const int rowMin = WaterConst::kPourTopRow;
@@ -464,8 +472,8 @@ bool FluidField::Init()
 	// -------- 質量正規化：読み戻し用ステージングテクスチャ＋CB --------
 	{
 		D3D11_TEXTURE2D_DESC td = {};
-		td.Width = WaterConst::kGridWidth;
-		td.Height = WaterConst::kGridHeight;
+		td.Width = m_gridW;
+		td.Height = m_gridH;
 		td.MipLevels = 1;
 		td.ArraySize = 1;
 		td.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -637,8 +645,8 @@ void FluidField::NormalizeMass()
 		D3D11_MAPPED_SUBRESOURCE mapped = {};
 		if (SUCCEEDED(ctx->Map(m_massReadback.Get(), 0, D3D11_MAP_READ, 0, &mapped)))
 		{
-			const int w = WaterConst::kGridWidth;
-			const int h = WaterConst::kGridHeight;
+			const int w = m_gridW;
+			const int h = m_gridH;
 			double sum = 0.0;
 			const char* base = static_cast<const char*>(mapped.pData);
 
@@ -725,7 +733,7 @@ void FluidField::Reset()
 
 	// current バッファの内容を初期データで上書き（RTは DEFAULT usage なので UpdateSubresource 可）
 	ID3D11DeviceContext* ctx = KdDirect3D::Instance().WorkDevContext();
-	const UINT rowPitch = static_cast<UINT>(WaterConst::kGridWidth * sizeof(Math::Vector4));
+	const UINT rowPitch = static_cast<UINT>(m_gridW * sizeof(Math::Vector4));
 	ctx->UpdateSubresource(m_quantity.current->WorkResource(), 0, nullptr, quantityData.data(), rowPitch, 0);
 
 	// 水量を初期値に戻す
@@ -816,15 +824,28 @@ void FluidField::Release()
 // ===================================================
 void FluidField::BuildInitialQuantity(std::vector<Math::Vector4>& out) const
 {
-	const int w = WaterConst::kGridWidth;
-	const int h = WaterConst::kGridHeight;
+	const int w = m_gridW;
+	const int h = m_gridH;
 
 	out.resize(static_cast<size_t>(w) * h);
 
-	for (int i = 0; i < w * h; ++i)
+	// 下から m_initialFill の割合ぶんを水で満たす（0なら全部空気＝空のコップ）。
+	//  row0=上・row増加=下なので、この行より下が水。
+	const int waterTopRow = static_cast<int>(static_cast<float>(h) * (1.0f - m_initialFill));
+
+	for (int row = 0; row < h; ++row)
 	{
-		// (x,y=運動量=0, z=質量=空気, w=体積)
-		out[i] = { 0.0f, 0.0f, WaterConst::kCellAirMass, WaterConst::kCellVolume };
+		const bool isWater = (row >= waterTopRow);
+		for (int col = 0; col < w; ++col)
+		{
+			// (x,y=運動量=0, z=質量, w=体積)
+			out[static_cast<size_t>(row) * w + col] =
+			{
+				0.0f, 0.0f,
+				isWater ? WaterConst::kCellWaterMass : WaterConst::kCellAirMass,
+				WaterConst::kCellVolume
+			};
+		}
 	}
 }
 
@@ -833,8 +854,8 @@ void FluidField::BuildInitialQuantity(std::vector<Math::Vector4>& out) const
 // ===================================================
 void FluidField::BuildSolidMask(std::vector<Math::Vector4>& out, bool chuteOpen) const
 {
-	const int w = WaterConst::kGridWidth;
-	const int h = WaterConst::kGridHeight;
+	const int w = m_gridW;
+	const int h = m_gridH;
 	out.resize(static_cast<size_t>(w) * h);
 
 	const std::vector<Math::Vector2>& poly = CupConst::kInnerShape;
@@ -850,7 +871,13 @@ void FluidField::BuildSolidMask(std::vector<Math::Vector4>& out, bool chuteOpen)
 			const float wy = CupConst::kSimTopY - (row + 0.5f) / static_cast<float>(h) * CupConst::kSimHeight;
 
 			bool inside;
-			if (wy <= CupConst::kInnerTopY)
+			if (m_fullRectMask)
+			{
+				// タイトル演出用：全面の水槽（外周だけ壁にして水を閉じ込める）
+				const int b = 2;	// 壁の厚み（セル）
+				inside = (col >= b && col < w - b && row >= b && row < h - b);
+			}
+			else if (wy <= CupConst::kInnerTopY)
 			{
 				// コップ本体：内側多角形の中か（レイキャスト法）
 				inside = false;
@@ -1111,7 +1138,7 @@ void FluidField::RenderAdvection(const std::shared_ptr<KdTexture>& src, const st
 	UINT offset = 0;
 	ctx->IASetVertexBuffers(0, 1, m_cellPosVB.GetAddressOf(), &stride, &offset);
 	ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-	ctx->Draw(static_cast<UINT>(WaterConst::kGridWidth) * WaterConst::kGridHeight, 0);
+	ctx->Draw(static_cast<UINT>(m_gridW) * m_gridH, 0);
 
 	// 後始末：GS解除・入力解除・ブレンド戻し
 	ctx->GSSetShader(nullptr, nullptr, 0);

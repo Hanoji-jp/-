@@ -2,6 +2,9 @@
 
 #include"../BaseScene/BaseScene.h"
 
+// 前方宣言
+class FluidField;
+
 class TitleScene : public BaseScene
 {
 public:
@@ -24,9 +27,10 @@ private:
 	//画像テクスチャ
 	KdTexture m_spaceTex;
 	KdTexture m_titleTex;
-	KdTexture m_waveTex;
 
-	//波画像のスクロールとサインカーブ用の変数
-	float m_waveScrollX = 0.0f;
-	float m_waveTime = 0.0f;
+	//背景の流体（サイン波画像の代わりに、実際のGPU流体シミュレーションを表示する）
+	std::shared_ptr<FluidField> m_fluid;
+	std::shared_ptr<KdSoundInstance> m_titleSe;	//タイトルBGM
+	//流体を活かしておくための注水タイマー（一定周期で少し注いで波立たせる）
+	float m_fluidTime = 0.0f;
 };

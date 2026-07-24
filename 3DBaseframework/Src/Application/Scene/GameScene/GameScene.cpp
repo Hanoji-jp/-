@@ -9,6 +9,7 @@
 #include"../../GameObject/GameOver/GameOver.h"
 #include"../../GameObject/GameStart/GameStart.h"
 #include"../../GameObject/Tension/Tension.h"
+#include"../../GameObject/HandFinger/HandFinger.h"
 #include"../../GameObject/Effect/ClearEffectManager/ClearEffectManager.h"
 #include "../../GameObject/Desk/Desk.h"
 #include "../../GameObject/DrinkBar/DrinkBar.h"
@@ -16,6 +17,7 @@
 #include "../../GameObject/StandLight/StandLight.h"
 #include "../../GameObject/Wall/Wall.h"
 #include "../../GameObject/Window/Window.h"
+
 
 void GameScene::Event()
 {
@@ -32,7 +34,13 @@ void GameScene::Event()
 	{
 		// スペースキーを押している間だけ水を注ぐ
 		const bool spaceDown = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
+		//water.mp3の再生は注水中にループ再生する
+		
 
+	/*	if (spaceDown)
+		{
+			KdAudioManager::Instance().Play("Asset/Data/Audio/poti.mp3", false);
+		}*/
 		// タイトルからSPACEで入場した直後、押しっぱなしのSPACEでいきなり注水＝即判定に
 		// なってしまうのを防ぐ。一度SPACEが離されるまで注水を受け付けない。
 		if (!spaceDown) { m_pourArmed = true; }
@@ -43,6 +51,57 @@ void GameScene::Event()
 
 		const bool isPouring = spaceDown && m_pourArmed && introDone;
 		spWater->SetPouring(isPouring);
+
+		// 水が落ちている間だけ water.mp3 をループ再生する。
+		//  連打で新規インスタンスが積み上がらないよう、1本だけ持って再生／停止を切り替える。
+		if (isPouring && !m_waterPlaying)
+		{
+			if (m_waterSe)
+			{
+				m_waterSe->Play(true);
+				KdAudioManager::Instance().AddPlayList(m_waterSe);
+			}
+			else
+			{
+				m_waterSe = KdAudioManager::Instance().Play("Asset/Data/Audio/water.mp3", true);
+			}
+			m_waterPlaying = true;
+		}
+		else if (!isPouring && m_waterPlaying)
+		{
+			if (m_waterSe) { m_waterSe->Stop(); }
+			m_waterPlaying = false;
+		}
+
+		//ボタンを押したらpoti.mp3を再生する(連打防止)
+//イントロが終わったら押せるようにする
+		if (introDone)
+		{
+			if (spaceDown && !m_spaceDownPrev)
+			{
+				// KdAudioManager::Play() は呼ぶたびに新しい再生インスタンスを作るため、
+				// 連打するとpotiの同時発声が積み上がり、先に鳴っていた音（水音など）が
+				// 発声数を奪われて途中で切れてしまう。
+				// そこで poti は1本だけ持ち、押すたびに頭から鳴らし直す。
+				if (m_potiSe)
+				{
+					// Play() の中で一度Stopしてから再生するので頭出しになる
+					m_potiSe->Play(false);
+					// 鳴り終わると再生リストから外れているので、一括停止などが効くよう戻す
+					KdAudioManager::Instance().AddPlayList(m_potiSe);
+				}
+				else
+				{
+					m_potiSe = KdAudioManager::Instance().Play("Asset/Data/Audio/poti.mp3", false);
+				}
+			}
+			m_spaceDownPrev = spaceDown;
+		}
+
+
+
+		// 指でボタンを押す演出：注水中は指を押し込む
+		if (auto spHand = m_wpHand.lock()) { spHand->SetPressed(isPouring); }
 
 		// Rキーで水位をリセット（結果演出も消す）。開始演出（3・2・1・start）中は操作無効。
 		if (introDone && (GetAsyncKeyState('R') & 0x8000))
@@ -87,6 +146,12 @@ void GameScene::Init()
 	spWater->Init();
 	AddObject(spWater);
 	m_wpWater = spWater;
+
+	// 指でボタンを押す手（注水中は指が押し込まれる）。黒帯より先に描くため Tension の前に追加。
+	std::shared_ptr<HandFinger> spHand = std::make_shared<HandFinger>();
+	spHand->Init();
+	AddObject(spHand);
+	m_wpHand = spHand;
 
 	// 緊張演出（心臓音＋コップへズーム＋上下の黒帯を縮める）。水位が目標へ近づくほど強くなる。
 	std::shared_ptr<Tension> spTension = std::make_shared<Tension>();
