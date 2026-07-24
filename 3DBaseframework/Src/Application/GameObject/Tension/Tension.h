@@ -37,6 +37,11 @@ private:
 	std::shared_ptr<KdSoundInstance> m_heart;
 	std::shared_ptr<KdSoundInstance> m_muffled;
 
+	// ゲームシーンのBGM（ループ）。普通・籠りを両方鳴らし、水が溜まるほど籠り側へクロスフェード。
+	//  ※籠りBGMのファイルが未配置なら m_bgmMuffled は null（普通のBGMを絞るだけになる）
+	std::shared_ptr<KdSoundInstance> m_bgm;
+	std::shared_ptr<KdSoundInstance> m_bgmMuffled;
+
 	// 上下の黒帯用テクスチャ
 	KdTexture m_blackTex;
 

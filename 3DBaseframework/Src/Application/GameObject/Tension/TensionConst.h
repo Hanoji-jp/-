@@ -14,6 +14,18 @@ namespace TensionConst
 	inline constexpr const char* kHeartAudio   = "Asset/Data/Audio/heart.wav";
 	inline constexpr const char* kMuffledAudio = "Asset/Data/Audio/heart_muffled.wav";
 
+	// ゲームシーンのBGM（ループ）。心臓音と同じく、普通と籠り(muffled)を同時に鳴らして
+	// 水が溜まるほど「普通→籠り」へ音量クロスフェードする。
+	inline constexpr const char* kBgmAudio        = "Asset/Data/Audio/title.wav";
+	inline constexpr const char* kBgmMuffledAudio = "Asset/Data/Audio/title_muffled.wav";
+
+	// BGM全体の音量（クロスフェードしても合計はこの値を保つ）
+	inline constexpr float kBgmVolume = 0.55f;
+
+	// 籠りBGMが無い（ファイル未配置）ときに、代わりにどこまで音量を絞るか。
+	//  ※クロスフェード相手が居なくても「水が溜まると引っ込む」感じは出しておく。
+	inline constexpr float kBgmVolumeNoMuffled = 0.20f;
+
 	// レターボックス（上下の黒帯）用の黒画像
 	inline constexpr const char* kBlackImage = "Asset/Textures/kuro.png";
 

@@ -13,10 +13,25 @@ namespace
 {
 	// 作業ディレクトリ（3DBaseframework）直下に保存する
 	const char* kCsvPath = "tuning.csv";
+
+	// 調整ウィンドウは普段は非表示（プレイ画面を隠さないため）。このキーで表示／非表示を切り替える。
+	constexpr int  kToggleKey      = VK_F1;
+	constexpr bool kDefaultVisible = false;
+
+	// 現在の表示状態と、切替キーの前フレーム押下状態（押した瞬間だけ反転させる）
+	bool g_visible       = kDefaultVisible;
+	bool g_toggleKeyPrev = false;
 }
 
 void Tuning::DrawImGui()
 {
+	// F1で表示／非表示を切り替える（初期は非表示）
+	const bool toggleDown = (GetAsyncKeyState(kToggleKey) & 0x8000) != 0;
+	if (toggleDown && !g_toggleKeyPrev) { g_visible = !g_visible; }
+	g_toggleKeyPrev = toggleDown;
+
+	if (!g_visible) { return; }
+
 	// 内容に合わせて自動リサイズ（追加した項目が下に隠れないように）
 	if (ImGui::Begin("Tuning", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
