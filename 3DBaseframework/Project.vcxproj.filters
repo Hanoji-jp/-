@@ -127,6 +127,9 @@
     <Filter Include="Src\Application\GameObject\Effect\BlackoutEffect">
       <UniqueIdentifier>{af4ef487-da37-496a-bf88-4f18ac0dbf61}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Effect\RainbowBack">
+      <UniqueIdentifier>{bf050278-804b-4924-9ea6-79cc11e6a777}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -368,6 +371,9 @@
     <ClInclude Include="Src\Application\GameObject\Effect\BlackoutEffect\BlackoutEffect.h">
       <Filter>Src\Application\GameObject\Effect\BlackoutEffect</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Effect\RainbowBack\RainbowBack.h">
+      <Filter>Src\Application\GameObject\Effect\RainbowBack</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -565,6 +571,9 @@
     <ClCompile Include="Src\Application\GameObject\Tension\Tension.cpp" />
     <ClCompile Include="Src\Application\GameObject\Effect\BlackoutEffect\BlackoutEffect.cpp">
       <Filter>Src\Application\GameObject\Effect\BlackoutEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Effect\RainbowBack\RainbowBack.cpp">
+      <Filter>Src\Application\GameObject\Effect\RainbowBack</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

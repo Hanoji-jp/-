@@ -2,8 +2,9 @@
 #include "../../../Scene/GameScene/GameScene.h"
 
 // 各エフェクトインクルード
-#include "../Clear/RyouEffect/RyouEffect.h"
 #include "../BlackoutEffect/BlackoutEffect.h"
+#include "../RainbowBack/RainbowBack.h"
+#include "../Clear/RyouEffect/RyouEffect.h"
 
 void ClearEffectManager::Init()
 {
@@ -30,16 +31,25 @@ void ClearEffectManager::Update()
 		m_owner->AddObject(m_spBlackout);					// シーンのオブジェクトリストへ追加
 		m_spBlackout->Activate();							// アクティブ化
 	}
+	else if (m_ClearTime == 60)
+	{
+		if (m_spBlackout)
+		{
+			m_spBlackout->Deactivate();
+		}
 
-	if (m_spBlackout->IsEndFlg())
-	{	
+		// 虹背景オブジェクト生成 & 初期化してリストへ追加
+		m_spRainbowBack = std::make_shared<RainbowBack>();	// 生成
+		m_spRainbowBack->Init();							// 初期化
+		m_owner->AddObject(m_spRainbowBack);				// シーンのオブジェクトリストへ追加
+		m_spRainbowBack->Activate();						// アクティブ化
+
 		// 良オブジェクト生成 & 初期化してリストへ追加
-		//m_spRyou = std::make_shared<RyouEffect>();	// 生成
-		//m_spRyou->Init();							// 初期化
-		//m_owner->AddObject(m_spRyou);				// シーンのオブジェクトリストへ追加
-		//m_spRyou->Activate();						// アクティブ化
+		m_spRyou = std::make_shared<RyouEffect>();	// 生成
+		m_spRyou->Init();							// 初期化
+		m_owner->AddObject(m_spRyou);				// シーンのオブジェクトリストへ追加
+		m_spRyou->Activate();						// アクティブ化
 	}
-
 	
 	// クリアエフェクトカウント
 	m_ClearTime++;
@@ -63,6 +73,11 @@ void ClearEffectManager::Deactivate()
 	if (m_spRyou)
 	{
 		m_spRyou->Deactivate();
+	}
+
+	if (m_spRainbowBack)
+	{
+		m_spRainbowBack->Deactivate();
 	}
 
 	m_activeFlg = false;

@@ -5,6 +5,7 @@
 class GameScene;
 class RyouEffect;
 class BlackoutEffect;
+class RainbowBack;
 
 class ClearEffectManager : public EffectBase
 {
@@ -29,8 +30,8 @@ private:
 	int m_ClearTime = 0;
 
 	// 各エフェクトポインタ宣言
+	std::shared_ptr<RainbowBack> m_spRainbowBack;
 	std::shared_ptr<RyouEffect> m_spRyou;
-	
 	std::shared_ptr<BlackoutEffect> m_spBlackout;
 	
 };
