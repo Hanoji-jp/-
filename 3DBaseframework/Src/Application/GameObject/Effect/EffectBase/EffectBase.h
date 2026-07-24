@@ -27,9 +27,6 @@ public:
 	// 拡縮関数
 	virtual void ScalingIteration(float _scaleMax, float _scaleMin, float _speed);
 
-	// キャラ配置演出（拡大→縮小のワンショット）
-	virtual void PlaceChara();
-
 protected:
 	//====================
 	// 実行用フラグなど
