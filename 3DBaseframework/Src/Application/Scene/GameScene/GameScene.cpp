@@ -52,6 +52,21 @@ void GameScene::Event()
 		const bool isPouring = spaceDown && m_pourArmed && introDone;
 		spWater->SetPouring(isPouring);
 
+		// 水が落ちている間だけ water.mp3 をループ再生する。
+		//  注水が始まったら鳴らし始め、止めたら停止する（多重再生しないよう実体を保持）。
+		if (isPouring)
+		{
+			if (!m_waterSe)
+			{
+				m_waterSe = KdAudioManager::Instance().Play("Asset/Data/Audio/water.mp3", true);
+			}
+		}
+		else if (m_waterSe)
+		{
+			m_waterSe->Stop();
+			m_waterSe = nullptr;
+		}
+
 		//ボタンを押したらpoti.mp3を再生する(連打防止)
 //イントロが終わったら押せるようにする
 		if (introDone)

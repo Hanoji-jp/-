@@ -8,6 +8,7 @@ class GameOver;
 class ClearEffectManager;
 class GameStart;
 class HandFinger;
+class KdSoundInstance;
 
 class GameScene : public BaseScene
 {
@@ -37,6 +38,9 @@ private:
 
 	// 指でボタンを押す手（注水中は押し込む）
 	std::weak_ptr<HandFinger> m_wpHand;
+
+	// 水が落ちている間だけループ再生する水音（water.mp3）。止めるので実体を保持する。
+	std::shared_ptr<KdSoundInstance> m_waterSe;
 
 	// クリアエフェクトマネージャー
 	std::weak_ptr<ClearEffectManager> m_wpClrEftMng;
