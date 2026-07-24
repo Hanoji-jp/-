@@ -27,6 +27,9 @@ public:
 	// 拡縮関数
 	virtual void ScalingIteration(float _scaleMax, float _scaleMin, float _speed);
 
+	// キャラ配置演出（拡大→縮小のワンショット）
+	virtual void PlaceChara();
+
 protected:
 	//====================
 	// 実行用フラグなど
@@ -61,6 +64,11 @@ protected:
 	//  ※以前は関数ローカル static で全インスタンス共有かつ永続だったため、
 	//    前の状態が残って拡縮が止まって見えることがあった。インスタンスごとに持つ。
 	bool	m_scaleUp	= true;
+
+	// PlaceChara（ポップイン演出）のタイマー。0で停止。Activateで kPlaceDuration へリセットして再生。
+	//  ※これも以前は関数ローカル static で、2回目以降アニメせず・スケールが負になる不具合があった。
+	static constexpr int kPlaceDuration = 20;	// アニメ長（フレーム）
+	int		m_placeTime	= 0;
 
 	//====================
 	// 移動関係

@@ -332,6 +332,7 @@ bool FluidField::Init()
 		cbAdvection init;
 		init.Gravity  = { 0.0f, WaterConst::kGravityPerStep };	// row増加＝画面下が +
 		init.GridSize = { static_cast<float>(WaterConst::kGridWidth), static_cast<float>(WaterConst::kGridHeight) };
+		init.Damp     = WaterConst::kVelocityDampPerStep;		// 運動量減衰（沈静化）
 		m_cbAdvection.Create(&init);
 	}
 
@@ -406,24 +407,31 @@ bool FluidField::Init()
 	}
 
 	// -------- コップ形状マスク（多角形から作る静的テクスチャ） --------
+	//  2枚作る：シュートを開けたマスク（注水中）と、縁で塞いだマスク（止水中＝蓋）。
+	//  Step で pouring に応じて m_solid をどちらかへ切り替える。
 	{
-		std::vector<Math::Vector4> maskData;
-		BuildSolidMask(maskData);
-		D3D11_SUBRESOURCE_DATA msrd = {};
-		msrd.pSysMem = maskData.data();
-		msrd.SysMemPitch = static_cast<UINT>(WaterConst::kGridWidth * sizeof(Math::Vector4));
-		m_solid = std::make_shared<KdTexture>();
-		if (!m_solid->Create(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, &msrd))
+		auto createMask = [&](bool chuteOpen, std::shared_ptr<KdTexture>& dst) -> bool
+		{
+			std::vector<Math::Vector4> maskData;
+			BuildSolidMask(maskData, chuteOpen);
+			D3D11_SUBRESOURCE_DATA msrd = {};
+			msrd.pSysMem = maskData.data();
+			msrd.SysMemPitch = static_cast<UINT>(WaterConst::kGridWidth * sizeof(Math::Vector4));
+			dst = std::make_shared<KdTexture>();
+			return dst->Create(WaterConst::kGridWidth, WaterConst::kGridHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, &msrd);
+		};
+		if (!createMask(true, m_solidOpen) || !createMask(false, m_solidClosed))
 		{
 			assert(0 && "流体 形状マスクの作成に失敗");
 			return false;
 		}
+		m_solid = m_solidClosed;	// 初期は空のコップ＝止水中なので蓋あり
 	}
 
 	// -------- 注水・補填の定数バッファ＋初期水量 --------
 	{
 		// 吸い込み口（上部中央の矩形）
-		const int centerCol = WaterConst::kGridWidth / 2;
+		const int centerCol = WaterConst::kGridWidth / 2 + WaterConst::kPourCenterColOffset;
 		const int colMin = centerCol - WaterConst::kPourHalfCols;
 		const int colMax = centerCol + WaterConst::kPourHalfCols;
 		const int rowMin = WaterConst::kPourTopRow;
@@ -489,6 +497,24 @@ void FluidField::Step(float deltaTime, bool pouring)
 	if (!m_initialized) { return; }
 	(void)deltaTime;
 
+	// 形状マスクを切替：注水中はシュートを開けて落水を通し、止水後は縁で蓋をして
+	//  溜まった水が上（シュート）へ抜けるのを防ぐ（＝止水後に水が減るのを防ぐ）。
+	//  ただし止めた瞬間に塞ぐと落下途中の水柱が上に閉じ込められるので、少し待ってから蓋をする。
+	if (pouring)
+	{
+		m_framesSinceRelease = 0;
+		m_solid = m_solidOpen;
+	}
+	else if (m_framesSinceRelease < WaterConst::kChuteSealDelayFrames)
+	{
+		++m_framesSinceRelease;			// 落下中の水がコップに着くまで待つ
+		m_solid = m_solidOpen;
+	}
+	else
+	{
+		m_solid = m_solidClosed;		// 落ち切ったら蓋をして水位を保つ
+	}
+
 	KdShaderManager& sm = KdShaderManager::Instance();
 	ID3D11DeviceContext* rc = KdDirect3D::Instance().WorkDevContext();
 
@@ -523,26 +549,37 @@ void FluidField::Step(float deltaTime, bool pouring)
 	// ④ 注水（SPACE押下中）：上部中央から水を加える
 	if (pouring)
 	{
+		// 注ぐ量・速度は ImGui で実行時に変えられるよう、毎フレーム最新値を反映する
+		m_cbPour.Work().MassRate = WaterConst::kPourMassPerStep;
+		m_cbPour.Work().Velocity = WaterConst::kPourVelocity;
 		m_cbPour.Write();
 		sm.SetPSConstantBuffer(0, m_cbPour.GetAddress());
 		RenderPass(m_psPour.Get(), m_quantity.current, m_quantity.next);
 		m_quantity.Swap();
 
-		// 注いだぶんを水量へ積算（水位判定用。読み戻し不要）
+		// 注いだぶんを水量へ積算（水位判定用。読み戻し不要）。シェーダの加算量と一致させる。
 		m_waterMass += WaterConst::kPourMassPerStep * static_cast<float>(m_inletCellCount);
 	}
 
-	// ※ コップ形状は「シミュレーションを矩形のまま」解き、表示側（可視化パス）で
-	//   多角形にクリップする方式にする。マスクをシムに掛けると圧力変位が壁へ水を押し出し、
-	//   それを毎フレーム削除して水が溜まらなくなるため、シムには掛けない。
+	// ※ コップ形状は「多角形の内側で解く」＝当たり判定方式。
+	//   ・移流VS：壁セル(solid=0)へは移動せず、壁に沿って滑る（RenderAdvectionでt1にsolid）
+	//   ・圧力勾配：壁との流束を0にし、圧力が水を壁の外へ押し出さない（SolvePressureでt2にsolid）
+	//   これで質量を削らずに水が多角形内へ溜まる。旧mask-enforce（毎フレーム質量削除で
+	//   水が溜まらなくなる）は使わない。
 
-	// ⑤ 補填（余剰/不足の是正で水面を安定させる）
-	//  非保存的に質量を増減するため既定では無効（水が減るのを防ぐ）。
+	// ⑤ 反拡散（anti-diffusion）：移流のバイリニア撒き込みで毎フレーム鈍る水/空気の界面を、
+	//  質量zの「負のラプラシアン」で鋭く戻す（保存的）。これで止水後も水面が下がらない。
+	//  t1 に形状マスクを渡し、壁との流束を0にして質量を削らない。
 	if (WaterConst::kEnableEqualization)
 	{
+		m_cbEqualization.Work().DeficitRate = WaterConst::kAntiDiffusionRate;	// 反拡散の強さ
 		m_cbEqualization.Write();
 		sm.SetPSConstantBuffer(0, m_cbEqualization.GetAddress());
+		ID3D11ShaderResourceView* eqSolid = m_solid ? m_solid->WorkSRView() : nullptr;
+		rc->PSSetShaderResources(1, 1, &eqSolid);	// t1: 形状マスク（壁で流束0）
 		RenderPass(m_psEqualization.Get(), m_quantity.current, m_quantity.next);
+		ID3D11ShaderResourceView* nullSrv = nullptr;
+		rc->PSSetShaderResources(1, 1, &nullSrv);
 		m_quantity.Swap();
 	}
 
@@ -557,6 +594,13 @@ void FluidField::Step(float deltaTime, bool pouring)
 	NormalizeMass();
 
 	// ⑧ 現在の物理量＋泡から表示用テクスチャを生成（コップ形状マスクで内外を切る）
+	//  実測の水面高さまで平らに満たしつつ、ゆるやかな波＋中央の注水ストリームで動きを出す。
+	m_stepCount += 1.0f;
+	m_cbVisualize.Work().FoamParams.w  = m_measuredLevel;
+	m_cbVisualize.Work().ExtraParams.x = m_stepCount * WaterConst::kSurfaceWaveSpeed;	// 波の位相
+	m_cbVisualize.Work().ExtraParams.y = 0.5f;											// 中央X（割合）
+	m_cbVisualize.Work().ExtraParams.z = WaterConst::kStreamHalfFrac;					// 注水帯の半幅
+	m_cbVisualize.Work().ExtraParams.w = WaterConst::kSurfaceWaveAmp;					// 波の振幅
 	m_cbVisualize.Write();
 	sm.SetPSConstantBuffer(0, m_cbVisualize.GetAddress());
 	ID3D11ShaderResourceView* visSolid = m_solid ? m_solid->WorkSRView() : nullptr;
@@ -597,17 +641,55 @@ void FluidField::NormalizeMass()
 			const int h = WaterConst::kGridHeight;
 			double sum = 0.0;
 			const char* base = static_cast<const char*>(mapped.pData);
+
+			// 縁の行（これより上＝シュート＝落水路。水位に数えない）。
+			//  コップ本体は [rimRow, h) の行。水位はコップ本体の高さで正規化する。
+			const int   rimRow  = static_cast<int>(static_cast<float>(h) * CupConst::kSimRimFrac);
+			const float cupRows = static_cast<float>(h - rimRow);
+
+			// ① 総質量（全セル）を測る＝正規化用
 			for (int r = 0; r < h; ++r)
 			{
 				const Math::Vector4* row = reinterpret_cast<const Math::Vector4*>(base + static_cast<size_t>(r) * mapped.RowPitch);
 				for (int c = 0; c < w; ++c) { sum += row[c].z; }
 			}
+
+			// ② 水面＝各列で「底から連続している水」の高さ（＝プールの水面）。
+			//  底から上へ数え、最初に空気が来たら止める。こうすると、
+			//   ・プールと繋がっていない上の飛沫や、落下中のストリームを水位に数えない
+			//   →「注水中は満杯に誤認 → 手を離すと急落」という見かけの減少を防ぐ。
+			//  細い注水柱（中央の少数列）は中央値で弾く。
+			std::vector<float> levels;
+			levels.reserve(w);
+			for (int c = 0; c < w; ++c)
+			{
+				int contiguous = 0;
+				for (int r = h - 1; r >= rimRow; --r)	// 底（row大）→上。コップ本体のみ
+				{
+					const Math::Vector4* row = reinterpret_cast<const Math::Vector4*>(base + static_cast<size_t>(r) * mapped.RowPitch);
+					if (row[c].z > WaterConst::kLevelMassThresh) { ++contiguous; }
+					else { break; }	// 最初の空気で止める（上の飛び地は無視）
+				}
+				if (contiguous > 0) { levels.push_back(static_cast<float>(contiguous) / cupRows); }
+			}
 			ctx->Unmap(m_massReadback.Get(), 0);
+
+			if (!levels.empty())
+			{
+				std::sort(levels.begin(), levels.end());
+				m_measuredLevel = levels[levels.size() / 2];
+			}
+			else
+			{
+				m_measuredLevel = 0.0f;
+			}
 
 			if (sum > 1e-4)
 			{
 				const float scale = m_waterMass / static_cast<float>(sum);
-				m_massScale = std::clamp(scale, 0.8f, 1.25f);	// 極端な補正は避ける
+				// 高解像度＋速い水では移流のこぼれが増えるので、補正上限を広めにして
+				// 総質量を注いだ量へしっかり戻す（水が減るのを防ぐ）。
+				m_massScale = std::clamp(scale, 0.5f, 2.0f);
 			}
 		}
 	}
@@ -622,14 +704,13 @@ void FluidField::NormalizeMass()
 
 // ===================================================
 // 現在の水位（0.0=空 ～ 1.0=満杯）
-//  満杯 = 全セルが水（質量1）＝ W*H。注いだ水量から算出する。
+//  実測の水面高さ（下からの割合）を返す。多角形の台形グラスでは質量割合と
+//  水面高さが一致しないため、「見た目の水面＝判定」になるよう実測値を使う。
+//  ※測定は1フレーム遅れの読み戻しから（NormalizeMassで更新）。
 // ===================================================
 float FluidField::GetFillRate() const
 {
-	const float capacity = static_cast<float>(WaterConst::kGridWidth) *
-						   static_cast<float>(WaterConst::kGridHeight) * WaterConst::kCellWaterMass;
-	if (capacity <= 0.0f) { return 0.0f; }
-	return std::clamp(m_waterMass / capacity, 0.0f, 1.0f);
+	return std::clamp(m_measuredLevel, 0.0f, 1.0f);
 }
 
 // ===================================================
@@ -656,9 +737,14 @@ void FluidField::Reset()
 	std::vector<Math::Vector4> zero(quantityData.size(), Math::Vector4(0.0f, 0.0f, 0.0f, 0.0f));
 	ctx->UpdateSubresource(m_foam.current->WorkResource(), 0, nullptr, zero.data(), rowPitch, 0);
 
-	// 質量正規化の状態を初期化（古いコピーで誤補正しないように）
+	// 質量正規化・水位測定の状態を初期化（古いコピーで誤補正しないように）
 	m_readbackValid = false;
 	m_massScale = 1.0f;
+	m_measuredLevel = 0.0f;
+
+	// 空のコップ＝止水中なので蓋あり状態に戻す
+	m_framesSinceRelease = 100000;
+	m_solid = m_solidClosed;
 }
 
 // ===================================================
@@ -711,6 +797,8 @@ void FluidField::Release()
 
 	m_psMaskEnforce.Reset();
 	m_solid = nullptr;
+	m_solidOpen = nullptr;
+	m_solidClosed = nullptr;
 
 	m_intensity.clear();
 	m_connection = nullptr;
@@ -743,7 +831,7 @@ void FluidField::BuildInitialQuantity(std::vector<Math::Vector4>& out) const
 // ===================================================
 // コップ形状マスク：各セル中心が内側多角形の中なら1、外(壁)なら0
 // ===================================================
-void FluidField::BuildSolidMask(std::vector<Math::Vector4>& out) const
+void FluidField::BuildSolidMask(std::vector<Math::Vector4>& out, bool chuteOpen) const
 {
 	const int w = WaterConst::kGridWidth;
 	const int h = WaterConst::kGridHeight;
@@ -756,21 +844,38 @@ void FluidField::BuildSolidMask(std::vector<Math::Vector4>& out) const
 	{
 		for (int col = 0; col < w; ++col)
 		{
-			// セル中心の世界座標（row0=上、row増加=下）
+			// セル中心の世界座標（row0=上端＝シュート頂上、row増加=下）。
+			//  縦は拡張領域（kSimTopY→kSimBottomY）全体をマップする。
 			const float wx = CupConst::kInnerLeftX + (col + 0.5f) / static_cast<float>(w) * CupConst::kInnerWidth;
-			const float wy = CupConst::kInnerTopY  - (row + 0.5f) / static_cast<float>(h) * CupConst::kInnerHeight;
+			const float wy = CupConst::kSimTopY - (row + 0.5f) / static_cast<float>(h) * CupConst::kSimHeight;
 
-			// 点が多角形の内側か（レイキャスト法）
-			bool inside = false;
-			for (size_t i = 0, j = n - 1; i < n; j = i++)
+			bool inside;
+			if (wy <= CupConst::kInnerTopY)
 			{
-				const Math::Vector2& a = poly[i];
-				const Math::Vector2& b = poly[j];
-				if (((a.y > wy) != (b.y > wy)) &&
-					(wx < (b.x - a.x) * (wy - a.y) / (b.y - a.y) + a.x))
+				// コップ本体：内側多角形の中か（レイキャスト法）
+				inside = false;
+				for (size_t i = 0, j = n - 1; i < n; j = i++)
 				{
-					inside = !inside;
+					const Math::Vector2& a = poly[i];
+					const Math::Vector2& b = poly[j];
+					if (((a.y > wy) != (b.y > wy)) &&
+						(wx < (b.x - a.x) * (wy - a.y) / (b.y - a.y) + a.x))
+					{
+						inside = !inside;
+					}
 				}
+			}
+			else if (chuteOpen)
+			{
+				// シュート（縁より上）：中央の細い縦チャネルだけ水路（外は壁）。
+				//  落水を一定の太さに保ち、縁で急に細くならないようにする。注水中のみ開ける。
+				const float dx = wx - CupConst::kCenterX;
+				inside = (dx > -CupConst::kChuteHalfWidth && dx < CupConst::kChuteHalfWidth);
+			}
+			else
+			{
+				// 止水中：縁の上は全て壁＝コップに蓋。溜まった水が上へ抜けるのを防ぐ。
+				inside = false;
 			}
 
 			const float s = inside ? 1.0f : 0.0f;
@@ -977,6 +1082,10 @@ void FluidField::RenderAdvection(const std::shared_ptr<KdTexture>& src, const st
 	// 撒き込み先を 0 でクリア（加算合成の土台）
 	const float clearZero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	ctx->ClearRenderTargetView(dst->WorkRTView(), clearZero);
+
+	// 落下の速さ（重力）は ImGui で実行時に変えられるよう、毎フレーム最新値を反映する
+	m_cbAdvection.Work().Gravity = { 0.0f, WaterConst::kGravityPerStep };
+	m_cbAdvection.Work().Damp    = WaterConst::kVelocityDampPerStep;
 
 	// シェーダ設定（VS→GS→PS）
 	m_cbAdvection.Write();

@@ -56,6 +56,7 @@ void RyouEffect::Activate()
 	m_activeFlg = true;
 	m_scale = 0.3f;		// 拡縮を初期値から
 	m_scaleUp = true;	// 拡大方向から始める
+	m_placeTime = kPlaceDuration;	// ポップイン演出を頭から再生（毎回リセット）
 }
 
 void RyouEffect::Update()

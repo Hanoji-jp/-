@@ -37,14 +37,15 @@ public:
 	void Init()		override;
 	void PreDraw()	override;	// GPUシミュレーションを1ステップ進める
 	void Update()	override;
-	void DrawUnLit()override;	// コップ内側へ水面を表示
+	void DrawEffect()override;	// コップ内側へ水面を表示（半透明なので不透明シーンの後に描く）
 
-	// 注水の状態（一発勝負：離したら終了してロック）
+	// 注水の状態（一発勝負：離したら沈静→判定確定してロック）
 	enum class PourState
 	{
 		Ready,		// 未注水
 		Pouring,	// 注水中
-		Done,		// 終了（もう注げない）
+		Settling,	// 手を離した直後：水が落ち着くまで待つ（まだ判定しない）
+		Done,		// 終了（判定確定。もう注げない）
 	};
 
 	// 注いでいるか（SPACEの押下状態）を毎フレーム設定する。
@@ -70,11 +71,14 @@ private:
 	// 2次元流体場（GPU）。前方宣言＋スマートポインタで保持
 	std::unique_ptr<FluidField> m_fluid;
 
-	// コップ内側へ水面を貼る表示用板ポリゴン
+	// 流体シム領域（コップ本体＋上のシュート）へ可視化テクスチャを貼る表示用板ポリゴン
 	WaterDisplayPolygon m_displayPoly;
 
 	// 注水の状態
 	PourState m_pourState = PourState::Ready;
+
+	// 手を離してから判定を確定するまでの沈静フレーム数カウンタ
+	int m_settleFrames = 0;
 
 	// 判定結果
 	UIConst::RyoResult m_result = UIConst::RyoResult::None;

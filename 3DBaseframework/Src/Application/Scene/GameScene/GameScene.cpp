@@ -7,14 +7,15 @@
 #include "../../GameObject/Water/Water.h"
 #include "../../GameObject/UI/GameUI.h"
 #include"../../GameObject/GameOver/GameOver.h"
-#include"../../GameObject/Effect/ClearEffectManager/ClearEffectManager.h"
+#include"../../GameObject/GameStart/GameStart.h"
+#include"../../GameObject/Tension/Tension.h"
+#include"../../GameObject/Effect/Clear/RyouEffect/RyouEffect.h"
 #include "../../GameObject/Desk/Desk.h"
+#include "../../GameObject/DrinkBar/DrinkBar.h"
+#include "../../GameObject/Tuning/Tuning.h"
 #include "../../GameObject/StandLight/StandLight.h"
 #include "../../GameObject/Wall/Wall.h"
 #include "../../GameObject/Window/Window.h"
-
-
-
 
 void GameScene::Event()
 {
@@ -30,15 +31,25 @@ void GameScene::Event()
 	if (auto spWater = m_wpWater.lock())
 	{
 		// スペースキーを押している間だけ水を注ぐ
-		const bool isPouring = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
+		const bool spaceDown = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
+
+		// タイトルからSPACEで入場した直後、押しっぱなしのSPACEでいきなり注水＝即判定に
+		// なってしまうのを防ぐ。一度SPACEが離されるまで注水を受け付けない。
+		if (!spaceDown) { m_pourArmed = true; }
+
+		// 開始演出（水をドンピシャで入れろ→3・2・1→始めっ）が終わるまでは注水させない。
+		bool introDone = true;
+		if (auto spStart = m_wpGameStart.lock()) { introDone = spStart->IsFinished(); }
+
+		const bool isPouring = spaceDown && m_pourArmed && introDone;
 		spWater->SetPouring(isPouring);
 
-		// Rキーで水位をリセット（結果演出も消す）
-		if (GetAsyncKeyState('R') & 0x8000)
+		// Rキーで水位をリセット（結果演出も消す）。開始演出（3・2・1・start）中は操作無効。
+		if (introDone && (GetAsyncKeyState('R') & 0x8000))
 		{
 			spWater->Reset();
 			if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Deactivate(); }
-			if (auto spRyou = m_wpClrEftMng.lock()) { spRyou->Deactivate(); }
+			if (auto spRyou = m_wpRyou.lock()) { spRyou->Deactivate(); }
 		}
 
 		// 注ぎ終わり（一発勝負確定）で結果に応じて演出を出す
@@ -48,7 +59,7 @@ void GameScene::Event()
 			if (result == UIConst::RyoResult::Ryo)
 			{
 				// ぴったり（良）→ 良演出
-				if (auto spRyou = m_wpClrEftMng.lock()) { spRyou->Activate(); }
+				if (auto spRyou = m_wpRyou.lock()) { spRyou->Activate(); }
 			}
 			else if (result == UIConst::RyoResult::Under || result == UIConst::RyoResult::Over)
 			{
@@ -61,6 +72,9 @@ void GameScene::Event()
 
 void GameScene::Init()
 {
+	// 保存済みの調整値（コップ／水の出る位置／ドリンクバー）をCSVから読み込む
+	Tuning::LoadCsv();
+
 	// コップを正面から見るカメラ
 	std::shared_ptr<CameraBase> spCamera = std::make_shared<CameraBase>();
 	spCamera->Init();
@@ -73,6 +87,13 @@ void GameScene::Init()
 	spWater->Init();
 	AddObject(spWater);
 	m_wpWater = spWater;
+
+	// 緊張演出（心臓音＋コップへズーム＋上下の黒帯を縮める）。水位が目標へ近づくほど強くなる。
+	std::shared_ptr<Tension> spTension = std::make_shared<Tension>();
+	spTension->Init();
+	spTension->SetCamera(spCamera);
+	spTension->SetWater(spWater);
+	AddObject(spTension);
 
 	// コップ（枠・目標ライン）：水より後に描いて線を上に出すaddObject(spWater);
 	std::shared_ptr<Cup> spCup = std::make_shared<Cup>();
@@ -90,17 +111,21 @@ void GameScene::Init()
 	spDesk->Init();
 	AddObject(spDesk);
 
+	// ドリンクバー（ディスペンサー）：ノズルの下にコップを置いて水を注ぐ
+	std::shared_ptr<DrinkBar> spDrinkBar = std::make_shared<DrinkBar>();
+	spDrinkBar->Init();
+	AddObject(spDrinkBar);
+
 	//====================
 	// オブジェクト
 	//====================
 	//----- エフェクト -----
-	// クリアエフェクトマネージャー
-	std::shared_ptr<ClearEffectManager> _spClrEftMng;
-	_spClrEftMng = std::make_shared<ClearEffectManager>();
-	m_objList.push_back(_spClrEftMng);
-	_spClrEftMng->Init();
-	_spClrEftMng->SetOwner(this);
-	m_wpClrEftMng = _spClrEftMng;
+	// 良
+	std::shared_ptr<RyouEffect> _spRyou;
+	_spRyou = std::make_shared<RyouEffect>();
+	m_objList.push_back(_spRyou);
+	_spRyou->Init();
+	m_wpRyou = _spRyou;
 
 	// ゲームオーバー（失敗時のみ表示。初期は無効）
 	//  全画面の暗幕なので、シーンの3D物より後（最後）に描く必要がある。
@@ -123,4 +148,14 @@ void GameScene::Init()
 	std::shared_ptr<Window> spWindow = std::make_shared<Window>();
 	spWindow->Init();
 	AddObject(spWindow);
+
+	// 開始演出（3→2→1→水をドンピシャで入れろ）。最後に追加＝スプライトが最前面に出る。
+	//  これが終わるまで注水は受け付けない（Eventでゲート）。
+	std::shared_ptr<GameStart> spGameStart = std::make_shared<GameStart>();
+	spGameStart->Init();
+	AddObject(spGameStart);
+	m_wpGameStart = spGameStart;
+
+	// 開始演出が終わったら心臓音を鳴らすため、Tension に開始演出を渡す
+	spTension->SetGameStart(spGameStart);
 }

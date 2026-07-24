@@ -5,6 +5,10 @@
 // ===================================================
 namespace WaterConst
 {
+	// デバッグ表示用：直近の実測水位(0..1)。Water::PreDrawが毎フレーム書き込み、ImGuiが表示する。
+	//  見た目の水面と判定値のズレを確認・調整するために使う。
+	inline float g_debugFillRate = 0.0f;
+
 	// 水面を左右に分割する列（グリッド）の数
 	inline constexpr int kColumnCount = 60;
 
@@ -39,32 +43,64 @@ namespace WaterConst
 	//  quantity テクセル = (x,y=運動量, z=質量, w=体積)
 	// ===============================================
 
-	// 流体グリッドの解像度（コップ内側 幅4.0×高さ5.0 の比 4:5 に合わせる）
-	inline constexpr int kGridWidth  = 64;
-	inline constexpr int kGridHeight = 80;
+	// 流体グリッドの解像度＝水の「粒（1セル）」の細かさ。上げるほど粒が小さく（細かく）なる。
+	//  領域は「コップ内側(幅4.0×高さ5.0)＋上のシュート(高さ5.0)」＝幅4.0×高さ10.0（比 4:10）。
+	//  セルを正方形に保つため 高さ行数=幅列数×(10.0/4.0)=幅×2.5。
+	//  ImGui(Tuning)で変更→Apply で流体を作り直して反映（mutable。上げ過ぎると重い）。
+	inline int kGridWidth  = 160;	// 粒の細かさ（列数）。基準128の1.25倍
+	inline int kGridHeight = 400;	// = kGridWidth * 2.5（正方セル維持）
+
+	// ImGuiで解像度を変えたとき、流体場を作り直す要求フラグ（Water::PreDrawが処理）
+	inline bool g_fluidReinitRequested = false;
 
 	// セル初期値：質量／体積
 	inline constexpr float kCellWaterMass = 1.0f;	// 水で満たされたセルの質量
 	inline constexpr float kCellAirMass   = 0.001f;	// 水の無いセルの質量（完全な0は避ける）
 	inline constexpr float kCellVolume    = 1.0f;	// セルの体積（全セル共通）
 
+	// 水の3D回転体（表示）の色・形
+	inline const Math::Color kWaterBodyColor = { 0.20f, 0.55f, 0.90f, 0.80f };	// 半透明の青
+	inline constexpr float   kWaterInset     = 0.05f;	// ガラス内壁より少し内側に収める量
+
+	// 水位測定：この質量を超えるセルを「水」とみなし、各列の最上水セルから水面高さを測る。
+	//  判定（良/Under/Over）は質量割合ではなく、この実測の水面高さで行う
+	//  （多角形の台形グラスでは質量割合と水面高さが一致しないため）。
+	//  ★重要：可視化(kVisualizeWaterLo/Hi=0.18/0.34)の中点(≈0.26)に合わせる。
+	//   大きい(0.5)と、見た目より低く測って「見た目はライン=なのに Under」＝良が出ない不整合になる。
+	inline constexpr float kLevelMassThresh = 0.26f;
+
+	// 水面の見た目：実測レベルの水平面に「ゆるやかな波」を足して無機質さを消す。
+	//  ・壁際の盛り上がりは出さず、xの正弦波で上下に軽く揺らすだけ。
+	//  ※ImGuiで実行時に変更できるよう mutable（inline 非const）にしている。
+	inline float kSurfaceWaveAmp   = 0.022f;	// 波の振幅（高さに対する割合。0で完全な平面）
+	inline constexpr float kSurfaceWaveSpeed = 0.08f;	// 1ステップあたりの波の進み（位相）
+	// 注ぐ水（落下ストリーム）を見せる中央帯の半幅（幅に対する割合）。ここだけ水面より上のシム水を描く。
+	inline float kStreamHalfFrac   = 0.12f;
+
 	// 可視化パスの色：空色⇔水色を質量で補間、その上に泡色を重ねる
 	inline const Math::Color kVisualizeSpaceColor = { 0.87f, 0.93f, 0.98f, 1.0f };	// 空き（淡い水色）
-	inline const Math::Color kVisualizeWaterColor = { 0.20f, 0.55f, 0.90f, 1.0f };	// 水（青）
+	//  水の基準色（rgb）と基準アルファ(a)。ImGuiで実行時に変更できるよう mutable にしている。
+	inline Math::Color kVisualizeWaterColor = { 0.20f, 0.55f, 0.90f, 0.78f };	// 水（青・半透明）
 	inline const Math::Color kVisualizeFoamColor  = { 0.97f, 0.99f, 1.00f, 1.0f };	// 泡（白）
 	inline constexpr float   kVisualizeFoamGain   = 2.5f;	// 泡の見え方（泡量→不透明度）
 
 	// 水の塗り分け閾値：質量(z)がこの範囲で 空色→水色 へ切り替える。
 	//  Lo を上げ Hi を下げるほど、薄いセルも水として塗られ「気泡（粒々）」が減る。
-	inline constexpr float kVisualizeWaterLo = 0.10f;	// これ以下は空気（上げると水面上の薄い飛沫の粒々が消える）
-	inline constexpr float kVisualizeWaterHi = 0.30f;	// これ以上は完全に水
+	inline constexpr float kVisualizeWaterLo = 0.18f;	// これ以下は空気
+	inline constexpr float kVisualizeWaterHi = 0.34f;	// これ以上は完全に水
 
 	// ===============================================
 	// Phase2：移流＋重力
 	// ===============================================
 
-	// 重力（1ステップあたりの落下量：グリッドセル単位。row増加＝画面下が +）
-	inline constexpr float kGravityPerStep = 0.1f;
+	// 重力（1ステップあたりの落下量：グリッドセル単位。row増加＝画面下が +）＝落下（注ぐ）の速さ。
+	//  大きいほど水が速く落ちる。小さいほどゆっくり注がれる。ImGui(Tuning)で実行時に調整するため mutable。
+	//  ※上げ過ぎると1ステップの移動が大きく移流で質量がこぼれる（水が減る）。安定域に抑える。
+	inline float kGravityPerStep = 0.14f;	// 落下スピード（既定を下げてゆっくり注ぐ）
+
+	// 運動量の減衰（移流で速度に掛ける。1未満で放置時のスロッシュ＝壁際の盛り上がりが収まる）
+	//  ※重力には掛けない（落下は保つ）。1.0で減衰なし。1に近いほど水が柔らかく・良く動く。
+	inline float kVelocityDampPerStep = 0.965f;
 
 	// 初期の水ブロック（グリッドに対する割合。row0=上）
 	//  上部中央に塊を置き、重力で落下して底に溜まる様子を確認する
@@ -78,7 +114,7 @@ namespace WaterConst
 	// ===============================================
 
 	// 各レベルでの圧力ヤコビ反復回数（多いほど水面が平らに落ち着く＝左右の盛り上がりが減る）
-	inline constexpr int kJacobiIterations = 8;
+	inline constexpr int kJacobiIterations = 12;
 
 	// intensityピラミッドを作る最小サイズ（幅・高さがこれ未満になったら止める）
 	inline constexpr int kMinPyramidSize = 8;
@@ -87,20 +123,36 @@ namespace WaterConst
 	// Phase4：注水（pour）と補填（equalization）
 	// ===============================================
 
-	// 吸い込み口（上部中央）の形（グリッドのセル単位）
-	inline constexpr int kPourHalfCols = 3;	// 中心から左右へ何列ぶんか（幅 = 2*これ）
-	inline constexpr int kPourTopRow   = 2;	// 上端から何row下に置くか
-	inline constexpr int kPourRows     = 3;	// 縦方向の厚み（row数）
+	// 吸い込み口（上部）の形（グリッドのセル単位）※解像度2倍に合わせてセル数も2倍
+	inline constexpr int kPourHalfCols = 16;	// 中心から左右へ何列ぶんか（幅 = 2*これ）。シュートのチャネル幅に合わせる
+	inline constexpr int kPourTopRow   = 1;	// 上端から何row下に置くか（小さいほど水がコップの一番上から湧く＝口に近い）
+	inline constexpr int kPourRows     = 6;	// 縦方向の厚み（row数）
+	// 注ぎ口の横位置オフセット（列。中央=0。＋で右へ）＝ピッチャーの口の下から水を出すため
+	inline constexpr int kPourCenterColOffset = 0;
 
-	// 1ステップで注ぐ量・下向き速度
-	inline constexpr float kPourMassPerStep = 0.5f;		// セルあたりに加える質量
-	inline constexpr float kPourVelocity    = 0.18f;	// 加える下向き速度（小さいほど飛沫が減る＝壁を伝う盛り上がりが減る）
+	// 手を離してから判定を確定するまでの沈静フレーム数（60fpsで約2.5秒）。
+	//  水が跳ねて暴れている最中に判定すると水面が読めず、良（クリア）が正しく出ない。
+	//  シュートの蓋(kChuteSealDelayFrames=90)より後に判定するよう、それより大きくする。
+	inline constexpr int kJudgeSettleFrames = 150;
 
-	// equalization（余剰を削り、不足を補充密度で補う。非圧縮＋拡散補正）
-	inline constexpr bool  kEnableEqualization      = true;
-	inline constexpr float kEqualizationSurplusRate = 0.01f;
-	inline constexpr float kEqualizationDeficitRate = 0.01f;
-	// 不足セルを補う密度。1.0=水の密度で補充→拡散で薄まった水を濃く保ち、水量が減らない。
+	// 止水してからシュート（落水路）を蓋で塞ぐまでの遅延フレーム数。
+	//  落下途中の水柱がコップに着き切ってから塞ぐことで、水位の急落を防ぐ（60fpsで約1.5秒）。
+	//  塞ぐと、溜まった水が上へ這い上がって減っていくのを止められる。
+	inline constexpr int kChuteSealDelayFrames = 90;
+
+	// 1ステップで注ぐ量・下向き速度（ImGui(Tuning)で実行時に調整するため mutable）。
+	inline float kPourMassPerStep = 0.5f;	// セルあたりに加える質量（大きいほど速く・多く入る）＝注ぐスピード
+	inline float kPourVelocity    = 0.38f;	// 加える下向き速度（大きいほど注ぎがきびきび速い。上げ過ぎると水が減る）
+
+	// 反拡散（anti-diffusion）パス（旧equalizationの配管を流用）。
+	//  移流のバイリニア撒き込みで毎フレーム鈍る水/空気の界面を、質量zの負のラプラシアンで
+	//  鋭く戻す（保存的）。これで止水後も水面が下がらない（シムは回したまま拡散だけ打ち消す）。
+	inline constexpr bool  kEnableEqualization = true;
+	//  反拡散の強さ（0で無効、大きいほど強く再集中。上げ過ぎると不安定＝振動/発散。安定域は~0.03〜0.15）。
+	inline float kAntiDiffusionRate = 0.0f;	// 既定0＝無効（反拡散は過剰集中で暴走するため。実験用にスライダーは残す）
+	// 旧equalizationの未使用パラメータ（CB構造体の互換のため残置）
+	inline constexpr float kEqualizationSurplusRate = 0.0f;
+	inline constexpr float kEqualizationDeficitRate = 0.0f;
 	inline constexpr float kEqualizationRefillDensity = 1.0f;
 
 	// ===============================================
