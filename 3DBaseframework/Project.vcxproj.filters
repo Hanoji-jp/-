@@ -356,6 +356,15 @@
       <Filter>Src\Application\GameObject\Effect\ClearEffectManager</Filter>
     </ClInclude>
     <ClInclude Include="Src\Application\GameObject\Window\Window.h" />
+    <ClInclude Include="Src\Application\GameObject\Pitcher\Pitcher.h" />
+    <ClInclude Include="Src\Application\GameObject\Pitcher\PitcherConst.h" />
+    <ClInclude Include="Src\Application\GameObject\DrinkBar\DrinkBar.h" />
+    <ClInclude Include="Src\Application\GameObject\DrinkBar\DrinkBarConst.h" />
+    <ClInclude Include="Src\Application\GameObject\Tuning\Tuning.h" />
+    <ClInclude Include="Src\Application\GameObject\GameStart\GameStart.h" />
+    <ClInclude Include="Src\Application\GameObject\GameStart\GameStartConst.h" />
+    <ClInclude Include="Src\Application\GameObject\Tension\Tension.h" />
+    <ClInclude Include="Src\Application\GameObject\Tension\TensionConst.h" />
     <ClInclude Include="Src\Application\GameObject\Effect\BlackoutEffect\BlackoutEffect.h">
       <Filter>Src\Application\GameObject\Effect\BlackoutEffect</Filter>
     </ClInclude>
@@ -549,6 +558,11 @@
       <Filter>Src\Application\GameObject\Effect\ClearEffectManager</Filter>
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Window\Window.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Pitcher\Pitcher.cpp" />
+    <ClCompile Include="Src\Application\GameObject\DrinkBar\DrinkBar.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Tuning\Tuning.cpp" />
+    <ClCompile Include="Src\Application\GameObject\GameStart\GameStart.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Tension\Tension.cpp" />
     <ClCompile Include="Src\Application\GameObject\Effect\BlackoutEffect\BlackoutEffect.cpp">
       <Filter>Src\Application\GameObject\Effect\BlackoutEffect</Filter>
     </ClCompile>

@@ -49,6 +49,7 @@ void GameScene::Event()
 		{
 			spWater->Reset();
 			if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Deactivate(); }
+			if (auto spRyou = m_wpClrEftMng.lock()) { spRyou->Deactivate(); }
 		}
 
 		// 注ぎ終わり（一発勝負確定）で結果に応じて演出を出す
@@ -119,12 +120,13 @@ void GameScene::Init()
 	// オブジェクト
 	//====================
 	//----- エフェクト -----
-	// 良
-	std::shared_ptr<RyouEffect> _spRyou;
-	_spRyou = std::make_shared<RyouEffect>();
-	m_objList.push_back(_spRyou);
-	_spRyou->Init();
-	m_wpRyou = _spRyou;
+	// クリアエフェクトマネージャー
+	std::shared_ptr<ClearEffectManager> _spClrEftMng;
+	_spClrEftMng = std::make_shared<ClearEffectManager>();
+	m_objList.push_back(_spClrEftMng);
+	_spClrEftMng->Init();
+	_spClrEftMng->SetOwner(this);
+	m_wpClrEftMng = _spClrEftMng;
 
 	// ゲームオーバー（失敗時のみ表示。初期は無効）
 	//  全画面の暗幕なので、シーンの3D物より後（最後）に描く必要がある。
