@@ -279,6 +279,7 @@
     <ClInclude Include="Src\Application\GameObject\Clear\Clear.h" />
     <ClInclude Include="Src\Application\GameObject\Cup\Cup.h" />
     <ClInclude Include="Src\Application\GameObject\Effect\BlackoutEffect\BlackoutEffect.h" />
+    <ClInclude Include="Src\Application\GameObject\Effect\RainbowBack\RainbowBack.h" />
     <ClInclude Include="Src\Application\GameObject\Pitcher\Pitcher.h" />
     <ClInclude Include="Src\Application\GameObject\Pitcher\PitcherConst.h" />
     <ClInclude Include="Src\Application\GameObject\DrinkBar\DrinkBar.h" />
@@ -362,6 +363,7 @@
     <ClCompile Include="Src\Application\GameObject\Cup\Cup.cpp" />
     <ClCompile Include="Src\Application\GameObject\Desk\Desk.cpp" />
     <ClCompile Include="Src\Application\GameObject\Effect\BlackoutEffect\BlackoutEffect.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Effect\RainbowBack\RainbowBack.cpp" />
     <ClCompile Include="Src\Application\GameObject\Pitcher\Pitcher.cpp" />
     <ClCompile Include="Src\Application\GameObject\DrinkBar\DrinkBar.cpp" />
     <ClCompile Include="Src\Application\GameObject\Tuning\Tuning.cpp" />

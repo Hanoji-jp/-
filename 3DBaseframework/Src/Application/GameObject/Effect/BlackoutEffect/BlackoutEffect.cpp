@@ -35,7 +35,7 @@ void BlackoutEffect::Init()
 			m_spTex[3]->Load("Asset/Textures/Effect/BlackoutEffect/blackout3.png");
 			break;
 		case 4:
-			m_spTex[4]->Load("Asset/Textures/Effect/RyouEffect/ryou.png");
+			//m_spTex[4]->Load("Asset/Textures/Effect/RyouEffect/ryou.png");
 			break;
 		default:
 			break;
@@ -102,6 +102,18 @@ void BlackoutEffect::Update()
 		{
 			_bo1Alp -= _bo1AlpInterval;
 		}
+		else if (m_time == 49)
+		{
+			_bo1Alp = 0.5f;
+		}
+		else if (m_time >= 50 && m_time < 60)
+		{
+			_bo1Alp += _bo1AlpInterval;
+		}
+		else if (m_time >= 60 && m_time < 90)
+		{
+			//_bo1Alp -= _bo1AlpInterval;
+		}
 		m_color[1] = { 1.0f, 1.0f, 1.0f, _bo1Alp };
 	}
 	
@@ -118,10 +130,9 @@ void BlackoutEffect::Update()
 		{
 			_bo2Scale.y -= 0.1f;
 		}
-		else if(m_time >= 23 && m_time < 60)
+		else
 		{
 			m_color[2] = { 1.0f, 1.0f, 1.0f, 0.0f };
-			_bo2Scale = { 1.0f,1.0f };
 		}
 
 
@@ -151,38 +162,38 @@ void BlackoutEffect::Update()
 
 	//画像4の処理
 	{
-		// 画像3の大きさ
-		static Math::Vector2 _bo4Scale = { 0.0f,0.0f };
+		//// 画像3の大きさ
+		//static Math::Vector2 _bo4Scale = { 0.0f,0.0f };
 
-		// 不透明度に加算する値
-		static const Math::Vector2 _bo4ScaleInterval = { 0.15f,0.15f };
+		//// 不透明度に加算する値
+		//static const Math::Vector2 _bo4ScaleInterval = { 0.15f,0.15f };
 
-		if (m_time == 30 )
-		{
-			_bo4Scale = { 2.0f,2.0f };
-		}
-		else if (m_time > 30 && m_time < 40)
-		{
-			_bo4Scale -= _bo4ScaleInterval;
-		}
-		else if (m_time >= 40 && m_time < 45)
-		{
-			_bo4Scale += _bo4ScaleInterval;
-		}
-		else if (m_time >= 45 && m_time < 50)
-		{
-			_bo4Scale -= _bo4ScaleInterval;
-		}
-		else if (m_time >= 50 && m_time < 55)
-		{
-			_bo4Scale += _bo4ScaleInterval;
-		}
-		else if (m_time >= 55 && m_time < 60)
-		{
-			_bo4Scale -= _bo4ScaleInterval;
-		}
+		//if (m_time == 30 )
+		//{
+		//	_bo4Scale = { 2.0f,2.0f };
+		//}
+		//else if (m_time > 30 && m_time < 40)
+		//{
+		//	_bo4Scale -= _bo4ScaleInterval;
+		//}
+		//else if (m_time >= 40 && m_time < 45)
+		//{
+		//	_bo4Scale += _bo4ScaleInterval;
+		//}
+		//else if (m_time >= 45 && m_time < 50)
+		//{
+		//	_bo4Scale -= _bo4ScaleInterval;
+		//}
+		//else if (m_time >= 50 && m_time < 55)
+		//{
+		//	_bo4Scale += _bo4ScaleInterval;
+		//}
+		//else if (m_time >= 55 && m_time < 60)
+		//{
+		//	_bo4Scale -= _bo4ScaleInterval;
+		//}
 
-		m_mWorld[4] = Math::Matrix::CreateScale(_bo4Scale.x, _bo4Scale.y, 1.0f);
+		//m_mWorld[4] = Math::Matrix::CreateScale(_bo4Scale.x, _bo4Scale.y, 1.0f);
 	}
 
 	// エフェクトの時間カウント
