@@ -50,6 +50,10 @@ void ClearEffectManager::Update()
 		m_owner->AddObject(m_spRyou);				// シーンのオブジェクトリストへ追加
 		m_spRyou->Activate();						// アクティブ化
 	}
+	else if (m_ClearTime == 1260)
+	{
+		Deactivate();
+	}
 	
 	// クリアエフェクトカウント
 	m_ClearTime++;

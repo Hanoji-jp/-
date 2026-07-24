@@ -80,6 +80,8 @@ void BlackoutEffect::Activate()
 	m_activeFlg = true;
 	m_scale = 1.0f;		// 拡縮を初期値から
 	m_scaleUp = true;	// 拡大方向から始める
+	// 音
+	KdAudioManager::Instance().Play("Asset/Data/Audio/freeze.wav", false);
 }
 
 void BlackoutEffect::Update()
@@ -201,6 +203,8 @@ void BlackoutEffect::Update()
 
 	// 終了フラグ
 	if (m_time >= 60)  m_endFlg = true;
+
+	
 
 	// 行列
 	m_mScale = Math::Matrix::CreateScale(m_scale);

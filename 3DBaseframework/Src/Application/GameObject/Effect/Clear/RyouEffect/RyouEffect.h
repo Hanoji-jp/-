@@ -13,8 +13,12 @@ public:
 	// アクティブ化　成功（良）時だけ表示する。初期は無効。
 	void Activate();
 
-private:
-	// 拡縮の時間管理用
-	float m_scaleTime = 0.0f;	
+	// 良ボイス
+	void RyouVoice();
 
+private:
+	// 良ボイス用変数
+	int m_ryouVoiceCnt = 0;
+	static const int m_ryouVoiceCntMax = 120;
+	bool m_playflg = false;
 };

@@ -24,6 +24,9 @@ public:
 	// 終了確認関数
 	virtual bool IsEndFlg() const { return m_endFlg; }
 
+	// 振動関数
+	virtual void Vibration(float _vMax, float _vMin, float _speed);
+
 	// 拡縮関数
 	virtual void ScalingIteration(float _scaleMax, float _scaleMin, float _speed);
 
@@ -61,6 +64,7 @@ protected:
 	//  ※以前は関数ローカル static で全インスタンス共有かつ永続だったため、
 	//    前の状態が残って拡縮が止まって見えることがあった。インスタンスごとに持つ。
 	bool	m_scaleUp	= true;
+	bool	m_vibUp = true;
 
 	// PlaceChara（ポップイン演出）のタイマー。0で停止。Activateで kPlaceDuration へリセットして再生。
 	//  ※これも以前は関数ローカル static で、2回目以降アニメせず・スケールが負になる不具合があった。

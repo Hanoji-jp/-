@@ -45,6 +45,27 @@ void EffectBase::Init()
 }
 
 
+void EffectBase::Vibration(float _vMax, float _vMin, float _speed)
+{
+	if (m_vibUp)
+	{
+		m_pos.x += _speed;
+	}
+	else
+	{
+		m_pos.x -= _speed;
+	}
+
+	if (m_pos.x >= _vMax)
+	{
+		m_vibUp = false;
+	}
+	else if (m_pos.x < _vMin)
+	{
+		m_vibUp = true;
+	}
+}
+
 void EffectBase::ScalingIteration(float _scaleMax, float _scaleMin, float _speed)
 {
 	if (m_scaleUp)

@@ -40,8 +40,13 @@ void RyouEffect::Init()
 	//====================
 	// エフェクト
 	//====================
-	// 拡縮の時間管理用
-	m_scaleTime = 60.0f;
+	// 挙動時間管理用
+	m_time = 0;
+
+
+
+	//乱数初期化
+	srand(timeGetTime());
 
 }
 
@@ -52,24 +57,50 @@ void RyouEffect::Activate()
 {
 	if (m_activeFlg) { return; }	// 既に表示中なら再スタートしない
 
-	//m_active = true;
 	m_activeFlg = true;
 	m_scale = 0.3f;		// 拡縮を初期値から
 	m_scaleUp = true;	// 拡大方向から始める
 	m_placeTime = kPlaceDuration;	// ポップイン演出を頭から再生（毎回リセット）
+
+	// 音
+	KdAudioManager::Instance().Play("Asset/Data/Audio/atari.wav",false);
 }
+
+
 
 void RyouEffect::Update()
 {
 	if (!m_activeFlg) { return; }	// 成功時だけ動く
 
-	// 拡縮反復
-	if (m_scaleTime > 0.0f)
-	{
-		m_scaleTime--;
+	// タイマーカウント
+	m_time++;
 
+	// 良ボイス用カウント
+	if (m_ryouVoiceCnt < m_ryouVoiceCntMax)
+	{
+		m_ryouVoiceCnt++;
+	}
+	else
+	{
+		m_ryouVoiceCnt = 0;
+	}
+
+	// アクティブになってから10秒経つまでブルブル
+	if (m_time < 600.0f)
+	{
+		m_scale = 0.8f;
+		// ブルブル
+		Vibration(10.0f, -10.0f, 10.0f);
+	}
+
+	// アクティブになってから10秒後に拡縮開始
+	if (m_time >= 600.0f)
+	{
 		// 拡縮反復
-		ScalingIteration(2.0f, 0.3f, 0.8f);
+		ScalingIteration(2.0f, 0.3f, 0.7f);
+
+		// 良ボイスランダム再生
+		RyouVoice();
 	}
 
 	// 行列
@@ -88,4 +119,42 @@ void RyouEffect::DrawSprite()
 	//KdDebugGUI::Instance().AddLog("RyouEffect DrawSprite");
 	// 行列をリセット
 	KdShaderManager::Instance().m_spriteShader.SetMatrix(Math::Matrix::Identity);
+}
+
+void RyouEffect::RyouVoice()
+{
+	// カウントが０でなければ再生しない
+	if (m_playflg) return;
+
+	KdAudioManager::Instance().Play("Asset/Data/Audio/ryou1.mp3", false);
+
+	m_playflg = true;
+
+	// ランダム
+	//int i = rand() % 6 + 1;
+
+	//switch (i)
+	//{
+	//case 1:
+	//	KdAudioManager::Instance().Play("Asset/Data/Audio/ryou1.mp3", false);
+	//	break;
+	//case 2:
+	//	KdAudioManager::Instance().Play("Asset/Data/Audio/ryou2.mp3", false);
+	//	break;
+	//case 3:
+	//	KdAudioManager::Instance().Play("Asset/Data/Audio/ryou3.mp3", false);
+	//	break;
+	//case 4:
+	//	KdAudioManager::Instance().Play("Asset/Data/Audio/ryou4.mp3", false);
+	//	break;
+	//case 5:
+	//	KdAudioManager::Instance().Play("Asset/Data/Audio/ryou5.mp3", false);
+	//	break;
+	//case 6:
+	//	KdAudioManager::Instance().Play("Asset/Data/Audio/ryou6.mp3", false);
+	//	break;
+	//default:
+	//	break;
+
+	//}
 }
