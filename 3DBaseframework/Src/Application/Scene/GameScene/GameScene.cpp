@@ -9,7 +9,7 @@
 #include"../../GameObject/GameOver/GameOver.h"
 #include"../../GameObject/GameStart/GameStart.h"
 #include"../../GameObject/Tension/Tension.h"
-#include"../../GameObject/Effect/Clear/RyouEffect/RyouEffect.h"
+#include"../../GameObject/Effect/ClearEffectManager/ClearEffectManager.h"
 #include "../../GameObject/Desk/Desk.h"
 #include "../../GameObject/DrinkBar/DrinkBar.h"
 #include "../../GameObject/Tuning/Tuning.h"
@@ -49,7 +49,6 @@ void GameScene::Event()
 		{
 			spWater->Reset();
 			if (auto spGameOver = m_wpGameOver.lock()) { spGameOver->Deactivate(); }
-			if (auto spRyou = m_wpRyou.lock()) { spRyou->Deactivate(); }
 		}
 
 		// 注ぎ終わり（一発勝負確定）で結果に応じて演出を出す
@@ -59,7 +58,7 @@ void GameScene::Event()
 			if (result == UIConst::RyoResult::Ryo)
 			{
 				// ぴったり（良）→ 良演出
-				if (auto spRyou = m_wpRyou.lock()) { spRyou->Activate(); }
+				if (auto spRyou = m_wpClrEftMng.lock()) { spRyou->Activate(); }
 			}
 			else if (result == UIConst::RyoResult::Under || result == UIConst::RyoResult::Over)
 			{
