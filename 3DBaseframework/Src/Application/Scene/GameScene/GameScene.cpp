@@ -9,6 +9,7 @@
 #include"../../GameObject/GameOver/GameOver.h"
 #include"../../GameObject/GameStart/GameStart.h"
 #include"../../GameObject/Tension/Tension.h"
+#include"../../GameObject/HandFinger/HandFinger.h"
 #include"../../GameObject/Effect/ClearEffectManager/ClearEffectManager.h"
 #include "../../GameObject/Desk/Desk.h"
 #include "../../GameObject/DrinkBar/DrinkBar.h"
@@ -43,6 +44,9 @@ void GameScene::Event()
 
 		const bool isPouring = spaceDown && m_pourArmed && introDone;
 		spWater->SetPouring(isPouring);
+
+		// 指でボタンを押す演出：注水中は指を押し込む
+		if (auto spHand = m_wpHand.lock()) { spHand->SetPressed(isPouring); }
 
 		// Rキーで水位をリセット（結果演出も消す）。開始演出（3・2・1・start）中は操作無効。
 		if (introDone && (GetAsyncKeyState('R') & 0x8000))
@@ -87,6 +91,12 @@ void GameScene::Init()
 	spWater->Init();
 	AddObject(spWater);
 	m_wpWater = spWater;
+
+	// 指でボタンを押す手（注水中は指が押し込まれる）。黒帯より先に描くため Tension の前に追加。
+	std::shared_ptr<HandFinger> spHand = std::make_shared<HandFinger>();
+	spHand->Init();
+	AddObject(spHand);
+	m_wpHand = spHand;
 
 	// 緊張演出（心臓音＋コップへズーム＋上下の黒帯を縮める）。水位が目標へ近づくほど強くなる。
 	std::shared_ptr<Tension> spTension = std::make_shared<Tension>();

@@ -7,6 +7,7 @@ class Water;
 class GameOver;
 class ClearEffectManager;
 class GameStart;
+class HandFinger;
 
 class GameScene : public BaseScene
 {
@@ -33,6 +34,9 @@ private:
 
 	// 開始演出（水をドンピシャで入れろ→3・2・1→始めっ）。終わるまで注水を受け付けない。
 	std::weak_ptr<GameStart> m_wpGameStart;
+
+	// 指でボタンを押す手（注水中は押し込む）
+	std::weak_ptr<HandFinger> m_wpHand;
 
 	// クリアエフェクトマネージャー
 	std::weak_ptr<ClearEffectManager> m_wpClrEftMng;
