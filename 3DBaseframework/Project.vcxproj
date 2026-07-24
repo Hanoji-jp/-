@@ -295,6 +295,8 @@
     <ClInclude Include="Src\Application\GameObject\GameStart\GameStartConst.h" />
     <ClInclude Include="Src\Application\GameObject\Tension\Tension.h" />
     <ClInclude Include="Src\Application\GameObject\Tension\TensionConst.h" />
+    <ClInclude Include="Src\Application\GameObject\HandFinger\HandFinger.h" />
+    <ClInclude Include="Src\Application\GameObject\HandFinger\HandFingerConst.h" />
     <ClInclude Include="Src\Application\GameObject\StandLight\StandLight.h" />
     <ClInclude Include="Src\Application\GameObject\UI\GameUI.h" />
     <ClInclude Include="Src\Application\GameObject\UI\UIConst.h" />
@@ -373,6 +375,7 @@
     <ClCompile Include="Src\Application\GameObject\GameOver\GameOver.cpp" />
     <ClCompile Include="Src\Application\GameObject\GameStart\GameStart.cpp" />
     <ClCompile Include="Src\Application\GameObject\Tension\Tension.cpp" />
+    <ClCompile Include="Src\Application\GameObject\HandFinger\HandFinger.cpp" />
     <ClCompile Include="Src\Application\GameObject\StandLight\StandLight.cpp" />
     <ClCompile Include="Src\Application\GameObject\UI\GameUI.cpp" />
     <ClCompile Include="Src\Application\GameObject\Wall\Wall.cpp" />

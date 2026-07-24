@@ -20,13 +20,14 @@ public:
 	void Restart();
 
 private:
-	// 演出の進行フェーズ（3→2→1→start の順）
+	// 演出の進行フェーズ（start → 3 → 2 → 1 → hajime の順）
 	enum class Phase
 	{
+		Start,			// start（「水をドンピシャで入れろ！！！」）
 		Count3,			// 3
 		Count2,			// 2
 		Count1,			// 1
-		Start,			// start.mp3（「水をドンピシャで入れろ！！！」＋画像）
+		Hajime,			// 始め！
 		Done,			// 終了（注水解禁）
 	};
 
@@ -38,8 +39,9 @@ private:
 
 	// 表示画像（各フェーズで全画面表示）
 	KdTexture m_darkTex;		// 暗幕
+	KdTexture m_startTex;	// start（水をドンピシャで入れろ）
 	KdTexture m_tex3;		// 「3」
 	KdTexture m_tex2;		// 「2」
 	KdTexture m_tex1;		// 「1」
-	KdTexture m_startTex;	// start（水をドンピシャで入れろ）
+	KdTexture m_hajimeTex;	// 始め！
 };

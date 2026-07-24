@@ -17,22 +17,23 @@ namespace
 void GameStart::Init()
 {
 	m_darkTex.Load(GameStartConst::kDarkImage);
+	m_startTex.Load(GameStartConst::kStartImage);
 	m_tex3.Load(GameStartConst::kCount3Image);
 	m_tex2.Load(GameStartConst::kCount2Image);
 	m_tex1.Load(GameStartConst::kCount1Image);
-	m_startTex.Load(GameStartConst::kStartImage);
+	m_hajimeTex.Load(GameStartConst::kHajimeImage);
 
-	// 3 から開始（3→2→1→start の順）
-	m_phase = Phase::Count3;
+	// start（水をドンピシャで入れろ）から開始（start→3→2→1→hajime）
+	m_phase = Phase::Start;
 	m_frame = 0;
-	PlayIfSet(GameStartConst::kCount3Audio);
+	PlayIfSet(GameStartConst::kStartAudio);
 }
 
 void GameStart::Restart()
 {
-	m_phase = Phase::Count3;
+	m_phase = Phase::Start;
 	m_frame = 0;
-	PlayIfSet(GameStartConst::kCount3Audio);
+	PlayIfSet(GameStartConst::kStartAudio);
 }
 
 // フェーズ切替＝そのフェーズの音声を頭から鳴らす
@@ -43,9 +44,10 @@ void GameStart::EnterPhase(Phase next)
 
 	switch (next)
 	{
+	case Phase::Count3:	PlayIfSet(GameStartConst::kCount3Audio);	break;
 	case Phase::Count2:	PlayIfSet(GameStartConst::kCount2Audio);	break;
 	case Phase::Count1:	PlayIfSet(GameStartConst::kCount1Audio);	break;
-	case Phase::Start:	PlayIfSet(GameStartConst::kStartAudio);	break;	// 水をドンピシャで入れろ
+	case Phase::Hajime:	PlayIfSet(GameStartConst::kHajimeAudio);	break;
 	default:												break;
 	}
 }
@@ -58,6 +60,9 @@ void GameStart::Update()
 
 	switch (m_phase)
 	{
+	case Phase::Start:
+		if (m_frame >= GameStartConst::kStartFrames) { EnterPhase(Phase::Count3); }
+		break;
 	case Phase::Count3:
 		if (m_frame >= GameStartConst::kCountFrames) { EnterPhase(Phase::Count2); }
 		break;
@@ -65,10 +70,10 @@ void GameStart::Update()
 		if (m_frame >= GameStartConst::kCountFrames) { EnterPhase(Phase::Count1); }
 		break;
 	case Phase::Count1:
-		if (m_frame >= GameStartConst::kCountFrames) { EnterPhase(Phase::Start); }
+		if (m_frame >= GameStartConst::kCountFrames) { EnterPhase(Phase::Hajime); }
 		break;
-	case Phase::Start:
-		if (m_frame >= GameStartConst::kStartFrames) { m_phase = Phase::Done; }	// 注水解禁
+	case Phase::Hajime:
+		if (m_frame >= GameStartConst::kHajimeFrames) { m_phase = Phase::Done; }	// 注水解禁
 		break;
 	default:
 		break;
@@ -87,14 +92,15 @@ void GameStart::DrawSprite()
 	sprite.DrawTex(&m_darkTex, 0, 0,
 		GameStartConst::kOverlayWidth, GameStartConst::kOverlayHeight, nullptr, &dark);
 
-	// 現在のフェーズの画像を全画面表示（3→2→1→start）
+	// 現在のフェーズの画像を全画面表示（start→3→2→1→hajime）
 	KdTexture* tex = nullptr;
 	switch (m_phase)
 	{
+	case Phase::Start:	tex = &m_startTex;	break;
 	case Phase::Count3:	tex = &m_tex3;		break;
 	case Phase::Count2:	tex = &m_tex2;		break;
 	case Phase::Count1:	tex = &m_tex1;		break;
-	case Phase::Start:	tex = &m_startTex;	break;
+	case Phase::Hajime:	tex = &m_hajimeTex;	break;
 	default:									break;
 	}
 	if (tex)

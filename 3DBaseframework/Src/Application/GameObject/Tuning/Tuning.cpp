@@ -4,6 +4,7 @@
 #include "../DrinkBar/DrinkBarConst.h"
 #include "../Water/WaterConst.h"	// 実測水位のデバッグ表示
 #include "../UI/UIConst.h"			// 判定の許容誤差
+#include "../HandFinger/HandFingerConst.h"	// 指の位置・サイズ調整
 #include <fstream>
 #include <string>
 #include <cstdlib>
@@ -54,6 +55,15 @@ void Tuning::DrawImGui()
 		ImGui::SliderFloat("Anti-Diffuse", &WaterConst::kAntiDiffusionRate, 0.0f, 0.20f);
 
 		ImGui::Separator();
+		ImGui::Text("Hand (finger button, 3D)");
+		ImGui::SliderFloat("Hand X", &HandFingerConst::kPosX, -8.0f, 8.0f);
+		ImGui::SliderFloat("Hand Y", &HandFingerConst::kPosY, -8.0f, 8.0f);
+		ImGui::SliderFloat("Hand Z", &HandFingerConst::kPosZ, -8.0f, 8.0f);
+		ImGui::SliderFloat("Hand W", &HandFingerConst::kWidth, 0.1f, 10.0f);
+		ImGui::SliderFloat("Hand H", &HandFingerConst::kHeight, 0.1f, 10.0f);
+		ImGui::SliderFloat("Hand Press", &HandFingerConst::kPressOffsetY, 0.0f, 1.0f);
+
+		ImGui::Separator();
 		ImGui::Text("Water particles (grid res)  now %dx%d", WaterConst::kGridWidth, WaterConst::kGridHeight);
 		// 粒の細かさ＝基準(128x320)に対する倍率%。上げるほど粒が小さく（細かく）なる。上げ過ぎると重い。
 		static int fineness = 125;	// 既定 160x400 = 125%
@@ -96,6 +106,12 @@ void Tuning::SaveCsv()
 	ofs << "fallSpeed,"<< WaterConst::kGravityPerStep    << "\n";
 	ofs << "gridW,"    << WaterConst::kGridWidth          << "\n";
 	ofs << "gridH,"    << WaterConst::kGridHeight         << "\n";
+	ofs << "handX,"    << HandFingerConst::kPosX          << "\n";
+	ofs << "handY,"    << HandFingerConst::kPosY          << "\n";
+	ofs << "handZ,"    << HandFingerConst::kPosZ          << "\n";
+	ofs << "handW,"    << HandFingerConst::kWidth         << "\n";
+	ofs << "handH,"    << HandFingerConst::kHeight        << "\n";
+	ofs << "handPress,"<< HandFingerConst::kPressOffsetY  << "\n";
 }
 
 void Tuning::LoadCsv()
@@ -127,5 +143,11 @@ void Tuning::LoadCsv()
 		else if (key == "fallSpeed"){ WaterConst::kGravityPerStep   = v; }
 		else if (key == "gridW")    { WaterConst::kGridWidth  = static_cast<int>(v); }
 		else if (key == "gridH")    { WaterConst::kGridHeight = static_cast<int>(v); }
+		else if (key == "handX")    { HandFingerConst::kPosX         = v; }
+		else if (key == "handY")    { HandFingerConst::kPosY         = v; }
+		else if (key == "handZ")    { HandFingerConst::kPosZ         = v; }
+		else if (key == "handW")    { HandFingerConst::kWidth        = v; }
+		else if (key == "handH")    { HandFingerConst::kHeight       = v; }
+		else if (key == "handPress"){ HandFingerConst::kPressOffsetY = v; }
 	}
 }
