@@ -7,7 +7,7 @@ class TitleScene : public BaseScene
 public:
 
 	TitleScene() { Init(); }
-	~TitleScene() {}
+	~TitleScene() { KdAudioManager::Instance().StopAllSound(); }
 
 	void Draw()override;
 	void Update() override;

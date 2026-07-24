@@ -69,6 +69,8 @@ void TitleScene::Event()
 
 void TitleScene::Init()
 {
+	KdAudioManager::Instance().Play("Asset//Data/Audio/title.WAV", true);
+
 	m_spaceTex.Load("Asset/Textures/space.png");
 	m_titleTex.Load("Asset/Textures/title_kari.png");
 	m_waveTex.Load("Asset/Textures/wave3.png");
