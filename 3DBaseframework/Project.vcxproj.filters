@@ -124,6 +124,9 @@
     <Filter Include="Src\Application\GameObject\Effect\ClearEffectManager">
       <UniqueIdentifier>{fcc34202-02df-4422-849a-0acb4ca257c8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Effect\BlackoutEffect">
+      <UniqueIdentifier>{af4ef487-da37-496a-bf88-4f18ac0dbf61}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -352,6 +355,10 @@
     <ClInclude Include="Src\Application\GameObject\Effect\ClearEffectManager\ClearEffectManager.h">
       <Filter>Src\Application\GameObject\Effect\ClearEffectManager</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Window\Window.h" />
+    <ClInclude Include="Src\Application\GameObject\Effect\BlackoutEffect\BlackoutEffect.h">
+      <Filter>Src\Application\GameObject\Effect\BlackoutEffect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -540,6 +547,10 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Effect\ClearEffectManager\ClearEffectManager.cpp">
       <Filter>Src\Application\GameObject\Effect\ClearEffectManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Window\Window.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Effect\BlackoutEffect\BlackoutEffect.cpp">
+      <Filter>Src\Application\GameObject\Effect\BlackoutEffect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -50,7 +50,6 @@ void RyouEffect::Init()
 //    既に表示中なら何もしない。そうしないと毎フレーム拡縮がリセットされ止まる。
 void RyouEffect::Activate()
 {
-	//if (m_active) { return; }	// 既に表示中なら再スタートしない
 	if (m_activeFlg) { return; }	// 既に表示中なら再スタートしない
 
 	//m_active = true;
@@ -61,7 +60,6 @@ void RyouEffect::Activate()
 
 void RyouEffect::Update()
 {
-	//if (!m_active) { return; }	// 成功時だけ動く
 	if (!m_activeFlg) { return; }	// 成功時だけ動く
 
 	// 拡縮反復
@@ -70,10 +68,8 @@ void RyouEffect::Update()
 		m_scaleTime--;
 
 		// 拡縮反復
-		//ScalingIteration(2.0f, 0.3f, 0.8f);
+		ScalingIteration(2.0f, 0.3f, 0.8f);
 	}
-	
-	PlaceChara();
 
 	// 行列
 	m_mScale = Math::Matrix::CreateScale(m_scale);
@@ -84,12 +80,11 @@ void RyouEffect::Update()
 
 void RyouEffect::DrawSprite()
 {
-	//if (!m_active) { return; }	// 成功時だけ表示
 	if (!m_activeFlg) { return; }	// 成功時だけ表示
 
 	KdShaderManager::Instance().m_spriteShader.SetMatrix(m_mWorld);
 	KdShaderManager::Instance().m_spriteShader.DrawTex(m_spTex, 0.0f, 0.0f);
-	KdDebugGUI::Instance().AddLog("RyouEffect DrawSprite");
+	//KdDebugGUI::Instance().AddLog("RyouEffect DrawSprite");
 	// 行列をリセット
 	KdShaderManager::Instance().m_spriteShader.SetMatrix(Math::Matrix::Identity);
 }

@@ -6,6 +6,7 @@
 class Water;
 class GameOver;
 class RyouEffect;
+class ClearEffectManager;
 
 class GameScene : public BaseScene
 {
@@ -26,6 +27,6 @@ private:
 	// 失敗時に表示するゲームオーバー
 	std::weak_ptr<GameOver> m_wpGameOver;
 
-	// 成功（良）時に表示する演出
-	std::weak_ptr<RyouEffect> m_wpRyou;
+	// クリアエフェクトマネージャー
+	std::weak_ptr<ClearEffectManager> m_wpClrEftMng;
 };
