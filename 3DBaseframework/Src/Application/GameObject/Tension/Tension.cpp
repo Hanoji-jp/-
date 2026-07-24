@@ -4,6 +4,7 @@
 #include "../Water/Water.h"
 #include "../Cup/CupConst.h"
 #include "../GameStart/GameStart.h"
+#include <cmath>	// 手持ちカメラ風の揺れ（sin/cos）
 
 void Tension::Init()
 {
@@ -44,28 +45,40 @@ void Tension::Update()
 	if (m_muffled) { m_muffled->SetVolume(gain * (1.0f - m_intensity)); }	// 籠り：最初が主、徐々に消える
 	if (m_heart)   { m_heart->SetVolume(gain * m_intensity); }				// 普通：溜まるほど主に
 
-	// カメラをコップへズームイン（intensity ぶんだけ近づける）
+	// 手持ちカメラ風の揺れ：周波数の違う正弦波を重ねて不規則に見せる。
+	//  緊張が高いほど（目標に近づくほど）揺れを少し大きくする。
+	m_swayTime += TensionConst::kSwaySpeed;
+	const float swayGain = 1.0f + (TensionConst::kSwayIntensityGain - 1.0f) * m_intensity;
+	const float swayX = (std::sinf(m_swayTime * 1.00f) * 0.6f
+					   + std::sinf(m_swayTime * 2.30f) * 0.4f) * TensionConst::kSwayAmpX * swayGain;
+	const float swayY = (std::cosf(m_swayTime * 1.30f) * 0.6f
+					   + std::sinf(m_swayTime * 3.10f) * 0.4f) * TensionConst::kSwayAmpY * swayGain;
+
+	// カメラをコップへズームイン（intensity ぶんだけ近づける）＋手持ち揺れ
 	if (auto cam = m_wpCamera.lock())
 	{
 		const float z = -(CupConst::kCameraDistanceZ - m_intensity * TensionConst::kZoomAmount);
-		cam->SetPos({ CupConst::kCenterX, 0.0f, z });
+		cam->SetPos({ CupConst::kCenterX + swayX, swayY, z });
 	}
 }
 
 void Tension::DrawSprite()
 {
-	// 上下の黒帯（レターボックス）。intensity が上がるほど縮む。
-	const float barH = TensionConst::kMaxBarHeight * (1.0f - m_intensity);
-	if (barH < 0.5f) { return; }	// 完全に縮んだら描かない
+	// 上下の黒帯（レターボックス）。開始は薄く、目標に近づく（intensity↑）ほど閉じて太くなる。
+	const float barH = TensionConst::kMinBarHeight
+		+ (TensionConst::kMaxBarHeight - TensionConst::kMinBarHeight) * m_intensity;
+	if (barH < 0.5f) { return; }
 
 	KdSpriteShader& sprite = KdShaderManager::Instance().m_spriteShader;
 	KdShaderManager::Instance().ChangeBlendState(KdBlendState::Alpha);
 
 	// ウィンドウは1280x720。中心原点・+Y上。上端 y=+360／下端 y=-360。
-	const int h = static_cast<int>(barH);
-	const int topY = static_cast<int>(360.0f - barH * 0.5f);	// 上帯の中心Y
-	sprite.DrawTex(&m_blackTex, 0,  topY, TensionConst::kBarWidth, h);	// 上
-	sprite.DrawTex(&m_blackTex, 0, -topY, TensionConst::kBarWidth, h);	// 下
+	//  画面外へ kBarOvershoot ぶんはみ出させて描く（整数丸めで端に1pxの隙間ができるのを防ぐ）。
+	const float over = TensionConst::kBarOvershoot;
+	const int   h    = static_cast<int>(barH + over);
+	const int   cY   = static_cast<int>(TensionConst::kScreenHalfHeight - barH * 0.5f + over * 0.5f);
+	sprite.DrawTex(&m_blackTex, 0,  cY, TensionConst::kBarWidth, h);	// 上
+	sprite.DrawTex(&m_blackTex, 0, -cY, TensionConst::kBarWidth, h);	// 下
 
 	KdShaderManager::Instance().UndoBlendState();
 }
