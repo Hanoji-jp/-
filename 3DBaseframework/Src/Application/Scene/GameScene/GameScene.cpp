@@ -18,6 +18,7 @@
 #include "../../GameObject/Wall/Wall.h"
 #include "../../GameObject/Window/Window.h"
 
+
 void GameScene::Event()
 {
 	// タイトルへ戻る
@@ -33,7 +34,13 @@ void GameScene::Event()
 	{
 		// スペースキーを押している間だけ水を注ぐ
 		const bool spaceDown = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
+		//water.mp3の再生は注水中にループ再生する
+		
 
+	/*	if (spaceDown)
+		{
+			KdAudioManager::Instance().Play("Asset/Data/Audio/poti.mp3", false);
+		}*/
 		// タイトルからSPACEで入場した直後、押しっぱなしのSPACEでいきなり注水＝即判定に
 		// なってしまうのを防ぐ。一度SPACEが離されるまで注水を受け付けない。
 		if (!spaceDown) { m_pourArmed = true; }
@@ -44,6 +51,20 @@ void GameScene::Event()
 
 		const bool isPouring = spaceDown && m_pourArmed && introDone;
 		spWater->SetPouring(isPouring);
+
+		//ボタンを押したらpoti.mp3を再生する(連打防止)
+//イントロが終わったら押せるようにする
+		if (introDone)
+		{
+			static bool spaceDownPrev = false;
+			if (spaceDown && !spaceDownPrev)
+			{
+				KdAudioManager::Instance().Play("Asset/Data/Audio/poti.mp3", false);
+			}
+			spaceDownPrev = spaceDown;
+		}
+
+
 
 		// 指でボタンを押す演出：注水中は指を押し込む
 		if (auto spHand = m_wpHand.lock()) { spHand->SetPressed(isPouring); }

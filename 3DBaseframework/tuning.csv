@@ -8,11 +8,11 @@ barZ,0.47
 nozX,0
 nozY,0.705
 nozZ,-0.376
-pourRate,0.254
+pourRate,0.382
 pourVel,0.203
 fallSpeed,0.3
-gridW,160
-gridH,400
+gridW,200
+gridH,502
 handX,3.583
 handY,-1.083
 handZ,-3.583
