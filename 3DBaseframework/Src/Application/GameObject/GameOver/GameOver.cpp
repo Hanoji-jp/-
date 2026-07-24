@@ -26,6 +26,8 @@ void GameOver::Activate()
 	m_frame  = 0;
 	m_textY  = m_textStartY;
 	m_resultAlpha = 0.0f;
+
+	KdAudioManager::Instance().Play("Asset/Data/Audio/failed.WAV", false);
 }
 
 void GameOver::Update()
